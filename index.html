@@ -19,6 +19,9 @@
   .head p{margin:6px 0 0; font-size:14px; font-style:italic; color:#4a3a24}
 
   .subtabs{display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-bottom:12px}
+  /* On desktop the wrapper is inert — display:contents removes it from layout
+     so the existing centered, wrapping tab row is completely unchanged. */
+  .subtabs-wrap{display:contents}
   .subtab{font-family:inherit; cursor:pointer; border:2px solid var(--edge); background:var(--parch); color:var(--ink); padding:8px 12px; border-radius:8px 8px 2px 2px; font-size:14px; font-weight:600; transition:.15s; box-shadow:0 2px 0 var(--shadow)}
   .subtab:hover{transform:translateY(-1px)}
   .subtab.on{background:var(--ink); color:var(--parch); border-color:var(--ink)}
@@ -71,6 +74,16 @@
   .dcitem .val{font-size:20px; font-weight:800; color:#fff; font-family:"Courier New",monospace}
   .dcitem .sub{font-size:11px; color:#ffe9a8; margin-top:2px; font-weight:600}
   .dcdivider{width:1px; background:rgba(255,233,168,.3); align-self:stretch}
+  /* Personalized "your DC" items — brighter, gold-tinted, to stand out from the generic formula */
+  .dcitem.yours{background:linear-gradient(180deg,rgba(166,124,26,.32),rgba(166,124,26,.15)); border-radius:8px; box-shadow:inset 0 0 0 1.5px var(--gold)}
+  .dcitem.yours .lbl{color:#ffe9a8; opacity:1; font-weight:800}
+  .dcitem.yours .val{font-size:30px; color:#fff; text-shadow:0 1px 6px rgba(166,124,26,.7)}
+  .dcitem.yours .sub{color:#ffedb8; opacity:.95}
+  .dcdivider.mine{background:var(--gold); width:2px}
+  .dcitem.yourshint{flex:1 1 100%; text-align:center; opacity:.85; border-top:1px dashed rgba(255,233,168,.35); margin-top:6px; padding-top:8px}
+  .dcitem.yourshint .lbl{font-size:10.5px; text-transform:uppercase; letter-spacing:.12em; color:#ffe9a8; margin-bottom:3px}
+  .dcitem.yourshint .sub{font-size:11.5px; color:#ffe9a8; font-weight:600}
+  .dcitem.yourshint b{color:#fff}
   .slots{display:flex; gap:6px; flex-wrap:wrap; margin:8px 0}
   .slot{background:var(--arc); color:#fff; padding:3px 9px; border-radius:5px; font-size:12px; font-weight:600}
   .pill{display:inline-block; background:var(--moss); color:#fff; padding:1px 7px; border-radius:5px; font-size:11px; margin:1px 2px; font-weight:600}
@@ -161,6 +174,63 @@
     border-radius:20px; padding:1px 7px; font-size:11px; font-weight:800; vertical-align:middle;
   }
   .favtab.on .favcount{background:#fff; color:var(--star-dk)}
+
+  /* ---- Character profile ---- */
+  .profile{max-width:760px}
+  .psub{
+    font-weight:800; color:var(--blood); margin:20px 0 9px; font-size:15px;
+    border-bottom:1px solid var(--edge); padding-bottom:5px;
+  }
+  .psub small{font-weight:600; color:#7a6b4e; font-size:12.5px}
+  .pfields{display:flex; flex-wrap:wrap; gap:12px}
+  .pf{display:flex; flex-direction:column; gap:4px; flex:1 1 200px}
+  .pf.pf-sm{flex:0 0 130px}
+  .pf span{font-weight:700; font-size:13px; color:var(--ink)}
+  .pf span em{font-weight:600; color:#8a7a5c; font-style:italic}
+  .pf small{color:#8a7a5c; font-size:11px}
+  .pf input, .pmod input{
+    border:1.5px solid var(--edge); border-radius:8px; padding:9px 10px;
+    background:#fff; color:var(--ink); font-size:15px; font-family:inherit; width:100%;
+  }
+  .pf input:focus, .pmod input:focus{outline:none; border-color:var(--gold); box-shadow:0 0 0 2px rgba(166,124,26,.2)}
+  .pmods{display:grid; grid-template-columns:repeat(6,1fr); gap:8px}
+  .pmod{display:flex; flex-direction:column; gap:4px; align-items:center}
+  .pmod span{font-weight:800; font-size:12px; color:var(--blood); letter-spacing:.04em}
+  .pmod input{text-align:center; padding:9px 4px; font-weight:700}
+  .pcast{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+  .pcastbtn{
+    border:1.5px solid var(--gold); background:var(--parch); color:var(--ink);
+    border-radius:8px; padding:8px 14px; font-weight:700; font-size:14px; cursor:pointer;
+    font-family:inherit; transition:all .12s;
+  }
+  .pcastbtn.on{background:var(--gold); color:#fff}
+  .pcasthint{font-size:12px; color:#8a7a5c; flex:1 1 100%}
+  .pcalc{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:10px}
+  .pcalcitem{
+    border:1.5px solid var(--edge); border-radius:10px; padding:12px 10px; text-align:center;
+    background:rgba(255,255,255,.5);
+  }
+  .pcalcitem.hero{border-color:var(--gold); background:rgba(166,124,26,.08)}
+  .pcv{font-size:30px; font-weight:800; color:var(--blood); line-height:1}
+  .pcalcitem.hero .pcv{color:var(--gold)}
+  .pcl{font-weight:700; font-size:12.5px; margin-top:4px; color:var(--ink)}
+  .pce{font-size:11px; color:#8a7a5c; margin-top:3px}
+  .pcheck{display:flex; align-items:center; gap:8px; font-size:13.5px; color:var(--ink); cursor:pointer; margin-bottom:4px}
+  .pcheck input{width:17px; height:17px; accent-color:var(--gold)}
+  .psaves{display:grid; grid-template-columns:repeat(6,1fr); gap:8px}
+  .psave{
+    border:1.5px solid var(--edge); border-radius:9px; padding:9px 6px; text-align:center;
+    background:rgba(255,255,255,.5);
+  }
+  .psave.on{border-color:var(--gold); background:rgba(166,124,26,.1)}
+  .psavehead{display:flex; align-items:center; justify-content:center; gap:5px; font-weight:800; font-size:12px; color:var(--blood); cursor:pointer}
+  .psavehead input{width:15px; height:15px; accent-color:var(--gold)}
+  .psaveval{font-size:22px; font-weight:800; color:var(--ink); margin-top:5px}
+  .preset{
+    margin-top:22px; border:1.5px solid var(--blood); background:transparent; color:var(--blood);
+    border-radius:8px; padding:9px 18px; font-weight:700; font-size:13.5px; cursor:pointer; font-family:inherit;
+  }
+  .preset:hover{background:var(--blood); color:#fff}
   /* ---- DM password gate ---- */
   .dmgate{
     display:flex; flex-direction:column; align-items:center; text-align:center;
@@ -227,16 +297,50 @@
       background:var(--parch); margin:0 -6px; padding:8px 6px 6px;
       border-bottom:2px solid var(--edge); box-shadow:0 2px 8px rgba(40,28,10,.14);
     }
-    /* Class tabs become a horizontal swipe strip so they never wrap to 3 lines */
+    /* Class tabs become a horizontal swipe strip so they never wrap to 3 lines.
+       The wrapper hosts left/right cues that make the swipe affordance obvious. */
+    .subtabs-wrap{
+      display:block; position:relative; margin-bottom:8px;
+    }
+    /* Edge cues: a gold gradient pad with a chevron, shown only when there's
+       actually more to scroll that direction (driven by data-l / data-r).
+       pointer-events:none keeps taps passing through to the tabs underneath. */
+    .subtabs-wrap::before,
+    .subtabs-wrap::after{
+      content:""; position:absolute; top:0; bottom:6px; width:34px;
+      pointer-events:none; z-index:2; opacity:0; transition:opacity .18s ease;
+      display:flex; align-items:center; justify-content:center;
+      font-family:inherit; font-size:20px; font-weight:800; color:#fff;
+      text-shadow:0 1px 2px rgba(40,28,10,.5);
+    }
+    .subtabs-wrap::before{
+      left:0; content:"‹";
+      background:linear-gradient(90deg,var(--gold) 30%,rgba(166,124,26,0));
+      padding-right:10px; justify-content:flex-start; padding-left:5px;
+    }
+    .subtabs-wrap::after{
+      right:0; content:"›";
+      background:linear-gradient(270deg,var(--gold) 30%,rgba(166,124,26,0));
+      padding-left:10px; justify-content:flex-end; padding-right:5px;
+    }
+    /* Reveal each arrow only when scrollable that way */
+    .subtabs-wrap[data-l="1"]::before{opacity:1}
+    .subtabs-wrap[data-r="1"]::after{opacity:1; animation:swipehint 1.4s ease 3}
+    /* A gentle 3-cycle nudge on the right arrow to say "swipe me" on first load */
+    @keyframes swipehint{
+      0%,100%{transform:translateX(0)}
+      50%{transform:translateX(-4px)}
+    }
     .subtabs{
       flex-wrap:nowrap; overflow-x:auto; justify-content:flex-start;
-      gap:6px; margin-bottom:8px; padding-bottom:4px;
+      gap:6px; margin-bottom:0; padding-bottom:4px;
       scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch;
+      scroll-behavior:smooth; scroll-padding-left:34px; scroll-padding-right:34px;
     }
     .subtabs::-webkit-scrollbar{height:3px}
-    .subtabs::-webkit-scrollbar-thumb{background:var(--edge); border-radius:3px}
+    .subtabs::-webkit-scrollbar-thumb{background:var(--gold); border-radius:3px}
     .subtab{
-      flex:0 0 auto; scroll-snap-align:start;
+      flex:0 0 auto; scroll-snap-align:center;
       padding:9px 13px; font-size:13.5px; min-height:42px; border-radius:8px;
     }
 
@@ -355,6 +459,13 @@
     .roll{white-space:normal; display:inline-block; line-height:1.7}
 
     .foot{font-size:11px; padding:0 6px}
+
+    /* Profile: relax the dense 6-col grids so phones stay tappable */
+    .pmods{grid-template-columns:repeat(3,1fr)}
+    .psaves{grid-template-columns:repeat(3,1fr)}
+    .pcalc{grid-template-columns:repeat(2,1fr)}
+    .pcv{font-size:26px}
+    .pf.pf-sm{flex:1 1 45%}
   }
 
   /* Very small phones */
@@ -369,6 +480,7 @@
   @media(prefers-reduced-motion:reduce){
     .panel{animation:none}
     .subtab,.lvbtn,.vt{transition:none}
+    .subtabs-wrap::after{animation:none}
   }
 </style>
 
@@ -377,7 +489,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 
 <script type="text/babel" data-presets="react">
-const {useState} = React;
+const {useState, useRef, useEffect} = React;
 
 const Roll = ({children}) => <span className="roll">{children}</span>;
 const Sec = ({title, children}) => (<div className="sec"><h3>{title}</h3>{children}</div>);
@@ -491,6 +603,166 @@ function useStars(){ return React.useContext(StarCtx) || {stars:new Set(), toggl
 // and using the name alone means starring Fireball on the Wizard tab also
 // shows it starred in Master Reference.
 const spellId = (row)=> "s:"+nodeText(row[0]).trim().toLowerCase();
+
+/* ============================================================
+   CHARACTER PROFILE — one saved character per device.
+   Player enters ability modifiers + level; the sheet computes
+   spell save DC, spell attack, saving throws, passive Perception,
+   and initiative so they never recalculate mid-combat.
+   Same localStorage-with-fallback approach as starred spells.
+============================================================ */
+const PROFILE_KEY = "dnd_codex_profile_v1";
+const BLANK_PROFILE = {
+  name:"", cls:"", level:1, profOverride:"",
+  castStat:"cha",
+  mods:{str:0, dex:0, con:0, int:0, wis:0, cha:0},
+  saveProf:{str:false, dex:false, con:false, int:false, wis:false, cha:false},
+  perceptionProf:false,
+};
+function loadProfile(){
+  try{
+    const raw = window.localStorage.getItem(PROFILE_KEY);
+    if(!raw) return {...BLANK_PROFILE};
+    const p = JSON.parse(raw);
+    // Merge over blank so older/partial saves don't crash on missing keys.
+    return {
+      ...BLANK_PROFILE, ...p,
+      mods:{...BLANK_PROFILE.mods, ...(p.mods||{})},
+      saveProf:{...BLANK_PROFILE.saveProf, ...(p.saveProf||{})},
+    };
+  }catch(e){ return {...BLANK_PROFILE}; }
+}
+function saveProfile(p){
+  try{ window.localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); }
+  catch(e){ /* storage blocked — profile still works this session */ }
+}
+const ProfileCtx = React.createContext(null);
+function ProfileProvider({children}){
+  const [profile, setProfile] = useState(()=>loadProfile());
+  const update = (patch)=>{
+    setProfile(prev=>{ const next={...prev, ...patch}; saveProfile(next); return next; });
+  };
+  const updateNested = (key, subkey, value)=>{
+    setProfile(prev=>{
+      const next={...prev, [key]:{...prev[key], [subkey]:value}};
+      saveProfile(next); return next;
+    });
+  };
+  const reset = ()=>{ const b={...BLANK_PROFILE}; saveProfile(b); setProfile(b); };
+  return <ProfileCtx.Provider value={{profile, update, updateNested, reset}}>{children}</ProfileCtx.Provider>;
+}
+function useProfile(){
+  return React.useContext(ProfileCtx) || {profile:{...BLANK_PROFILE}, update:()=>{}, updateNested:()=>{}, reset:()=>{}};
+}
+// Proficiency from level (2014 table): +2 (1–4), +3 (5–8), +4 (9–12)...
+function profFromLevel(lv){ return 2 + Math.floor((Math.max(1,Math.min(20,lv)) - 1) / 4); }
+// Effective prof honors a manual override if the player typed one.
+function effProf(p){
+  const o = parseInt(p.profOverride,10);
+  return (!isNaN(o) && p.profOverride!=="") ? o : profFromLevel(p.level||1);
+}
+const fmt = (n)=> (n>=0?"+":"")+n;  // signed display, e.g. +3 / -1
+const CAST_LABEL = {int:"Intelligence", wis:"Wisdom", cha:"Charisma"};
+const ABILITIES = [["str","STR"],["dex","DEX"],["con","CON"],["int","INT"],["wis","WIS"],["cha","CHA"]];
+
+function ProfilePanel(){
+  const {profile, update, updateNested, reset} = useProfile();
+  const p = profile;
+  const prof = effProf(p);
+  const castMod = p.mods[p.castStat] || 0;
+  const saveDC = 8 + prof + castMod;
+  const spellAtk = prof + castMod;
+  const passivePerc = 10 + (p.mods.wis||0) + (p.perceptionProf ? prof : 0);
+  const initiative = p.mods.dex || 0;
+
+  // Small helper for the -5..+10 mod stepper inputs
+  const clampMod = (v)=>{ let n=parseInt(v,10); if(isNaN(n)) n=0; return Math.max(-5, Math.min(12, n)); };
+
+  return (
+    <div className="profile">
+      <div className="note" style={{marginBottom:14}}>
+        Enter your ability modifiers (the small ± number, not the score) and level once.
+        Everything below recalculates automatically and saves on this device — no need to
+        recompute mid-combat. Values are private to whoever's holding this phone.
+      </div>
+
+      {/* Identity */}
+      <div className="pfields">
+        <label className="pf"><span>Character name</span>
+          <input type="text" value={p.name} placeholder="e.g. Vaelis"
+            onChange={e=>update({name:e.target.value})} /></label>
+        <label className="pf"><span>Class / subclass</span>
+          <input type="text" value={p.cls} placeholder="e.g. Lore Bard"
+            onChange={e=>update({cls:e.target.value})} /></label>
+        <label className="pf pf-sm"><span>Level</span>
+          <input type="number" min="1" max="20" value={p.level}
+            onChange={e=>update({level:Math.max(1,Math.min(20,parseInt(e.target.value,10)||1))})} /></label>
+        <label className="pf pf-sm"><span>Prof. bonus <em>(auto)</em></span>
+          <input type="number" value={p.profOverride} placeholder={"+"+profFromLevel(p.level||1)}
+            onChange={e=>update({profOverride:e.target.value})} />
+          <small>Blank = auto from level (+{profFromLevel(p.level||1)})</small></label>
+      </div>
+
+      {/* Ability modifiers */}
+      <div className="psub">Ability modifiers</div>
+      <div className="pmods">
+        {ABILITIES.map(([k,lbl])=>(
+          <label key={k} className="pmod"><span>{lbl}</span>
+            <input type="number" min="-5" max="12" value={p.mods[k]}
+              onChange={e=>updateNested("mods", k, clampMod(e.target.value))} />
+          </label>
+        ))}
+      </div>
+
+      {/* Spellcasting ability picker */}
+      <div className="psub">Spellcasting ability</div>
+      <div className="pcast">
+        {["int","wis","cha"].map(k=>(
+          <button key={k} className={"pcastbtn"+(p.castStat===k?" on":"")}
+            onClick={()=>update({castStat:k})}>{CAST_LABEL[k]}</button>
+        ))}
+        <span className="pcasthint">Bard = CHA · Cleric/Druid/Monk = WIS · Wizard = INT</span>
+      </div>
+
+      {/* Computed headline values */}
+      <div className="psub">Your numbers</div>
+      <div className="pcalc">
+        <div className="pcalcitem hero"><div className="pcv">{saveDC}</div><div className="pcl">Spell Save DC</div><div className="pce">8 + {prof} prof + {fmt(castMod)} {p.castStat.toUpperCase()}</div></div>
+        <div className="pcalcitem hero"><div className="pcv">{fmt(spellAtk)}</div><div className="pcl">Spell Attack</div><div className="pce">{prof} prof + {fmt(castMod)} {p.castStat.toUpperCase()}</div></div>
+        <div className="pcalcitem"><div className="pcv">{passivePerc}</div><div className="pcl">Passive Perception</div><div className="pce">10 + {fmt(p.mods.wis||0)} WIS{p.perceptionProf?" + "+prof+" prof":""}</div></div>
+        <div className="pcalcitem"><div className="pcv">{fmt(initiative)}</div><div className="pcl">Initiative</div><div className="pce">{fmt(p.mods.dex||0)} DEX</div></div>
+      </div>
+      <label className="pcheck">
+        <input type="checkbox" checked={p.perceptionProf}
+          onChange={e=>update({perceptionProf:e.target.checked})} />
+        Proficient in Perception (adds prof to passive)
+      </label>
+
+      {/* Saving throws */}
+      <div className="psub">Saving throws <small>— tick the two your class is proficient in</small></div>
+      <div className="psaves">
+        {ABILITIES.map(([k,lbl])=>{
+          const val = (p.mods[k]||0) + (p.saveProf[k] ? prof : 0);
+          return (
+            <div key={k} className={"psave"+(p.saveProf[k]?" on":"")}>
+              <label className="psavehead">
+                <input type="checkbox" checked={p.saveProf[k]}
+                  onChange={e=>updateNested("saveProf", k, e.target.checked)} />
+                {lbl}
+              </label>
+              <div className="psaveval">{fmt(val)}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      <button className="preset" onClick={()=>{ if(window.confirm("Clear this character profile? This can't be undone.")) reset(); }}>
+        Reset profile
+      </button>
+    </div>
+  );
+}
+
 function StarBtn({id, mobile}){
   const {stars, toggle} = useStars();
   const on = stars.has(id);
@@ -523,6 +795,18 @@ const casterNote = (stat, prof) => (<div className="note">"Upcast" = cast using 
 function DCBar({statLabel, prof}){
   const dc = 8 + prof;
   const atk = prof;
+  // Pull the player's saved profile so we can show their ACTUAL numbers.
+  // statLabel is the class's casting stat ("CHA"/"WIS"/"INT"); map it to the
+  // matching ability modifier the player entered in My Character.
+  const {profile} = useProfile();
+  const modKey = statLabel.toLowerCase();
+  const hasMod = profile && profile.mods && typeof profile.mods[modKey] === "number";
+  const myMod = hasMod ? profile.mods[modKey] : 0;
+  const entered = hasMod && (profile.mods[modKey] !== 0 || profile.name);
+  // "entered" is a light heuristic: a nonzero mod, or any saved name, means the
+  // player has actually set up their profile (a true 0 mod with a name still shows).
+  const myDC = 8 + prof + myMod;
+  const myAtk = prof + myMod;
   return (
     <div className="dcbar">
       <div className="dcitem">
@@ -536,12 +820,35 @@ function DCBar({statLabel, prof}){
         <div className="val">d20 +{atk} + {statLabel} mod</div>
         <div className="sub">= d20 + prof({prof}) + {statLabel}</div>
       </div>
+      {entered ? (<>
+        <div className="dcdivider mine"></div>
+        <div className="dcitem yours">
+          <div className="lbl">Your Spell Save DC</div>
+          <div className="val">{myDC}</div>
+          <div className="sub">8 + prof({prof}) + {statLabel}({fmt(myMod)})</div>
+        </div>
+        <div className="dcdivider mine"></div>
+        <div className="dcitem yours">
+          <div className="lbl">Your Spell Attack</div>
+          <div className="val">d20 {fmt(myAtk)}</div>
+          <div className="sub">prof({prof}) + {statLabel}({fmt(myMod)})</div>
+        </div>
+      </>) : (
+        <div className="dcitem yourshint">
+          <div className="lbl">Your Spell Save DC</div>
+          <div className="sub">Enter your {statLabel} modifier in <b>👤 My Character</b> and your exact DC shows here automatically.</div>
+        </div>
+      )}
     </div>
   );
 }
 function KiDCBar({lv}){
   const prof = lv>=5?3:2;
   const dc = 8+prof;
+  const {profile} = useProfile();
+  const wis = (profile && profile.mods && typeof profile.mods.wis==="number") ? profile.mods.wis : 0;
+  const entered = profile && (wis !== 0 || profile.name);
+  const myDC = 8 + prof + wis;
   return (
     <div className="dcbar">
       <div className="dcitem">
@@ -555,6 +862,19 @@ function KiDCBar({lv}){
         <div className="val">d20 +{prof} + DEX or STR</div>
         <div className="sub">= d20 + prof({prof}) + STR/DEX</div>
       </div>
+      {entered ? (<>
+        <div className="dcdivider mine"></div>
+        <div className="dcitem yours">
+          <div className="lbl">Your Ki Save DC</div>
+          <div className="val">{myDC}</div>
+          <div className="sub">8 + prof({prof}) + WIS({fmt(wis)})</div>
+        </div>
+      </>) : (
+        <div className="dcitem yourshint">
+          <div className="lbl">Your Ki Save DC</div>
+          <div className="sub">Enter your WIS modifier in <b>👤 My Character</b> and your exact Ki DC shows here.</div>
+        </div>
+      )}
     </div>
   );
 }
@@ -2040,6 +2360,7 @@ function App(){
   const [masterMode, setMasterMode] = useState(false);
   const [shopMode, setShopMode] = useState(false);
   const [favMode, setFavMode] = useState(false);
+  const [profileMode, setProfileMode] = useState(false);
   const [masterView, setMasterView] = useState("spells");
   const [clsOnlyStarred, setClsOnlyStarred] = useState(false);
   const {stars} = useStars();
@@ -2048,6 +2369,43 @@ function App(){
     SPELL_GROUPS.forEach(g=>g.rows().forEach(r=>{ if(stars.has(spellId(r))) s.add(nodeText(r[0]).trim()); }));
     return s.size; })();
   const K = CLASSES[cls];
+
+  // Mobile swipe strip: keep the active class tab centered, and track scroll
+  // position so we can show directional arrow cues only when there's more to reach.
+  const subtabsRef = useRef(null);
+  const [scrollEdges, setScrollEdges] = useState({left:false, right:false});
+  const activeKey = profileMode ? "profile" : masterMode ? "master" : shopMode ? "shop" : favMode ? "fav" : cls;
+  const updateEdges = ()=>{
+    const strip = subtabsRef.current;
+    if(!strip) return;
+    const scrollable = strip.scrollWidth - strip.clientWidth;
+    if(scrollable <= 2){ setScrollEdges({left:false, right:false}); return; }
+    setScrollEdges({
+      left: strip.scrollLeft > 4,
+      right: strip.scrollLeft < scrollable - 4,
+    });
+  };
+  useEffect(()=>{
+    const strip = subtabsRef.current;
+    if(!strip) return;
+    const active = strip.querySelector(".subtab.on");
+    // No-op on desktop (strip wraps, so it isn't horizontally scrollable).
+    if(active && strip.scrollWidth > strip.clientWidth){
+      const target = active.offsetLeft - (strip.clientWidth/2) + (active.offsetWidth/2);
+      const max = strip.scrollWidth - strip.clientWidth;
+      const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      strip.scrollTo({left: Math.max(0, Math.min(target, max)), behavior: reduce?"auto":"smooth"});
+    }
+    // Recompute arrow visibility after the scroll settles.
+    updateEdges();
+    const t = setTimeout(updateEdges, 350);
+    return ()=>clearTimeout(t);
+  }, [activeKey]);
+  useEffect(()=>{
+    updateEdges();
+    window.addEventListener("resize", updateEdges);
+    return ()=>window.removeEventListener("resize", updateEdges);
+  }, []);
 
   let headerRight="", body=null;
   const isMonk = K.kind==='monk';
@@ -2124,16 +2482,19 @@ function App(){
       </div>
 
       <div className="navwrap">
-        <div className="subtabs">
+        <div className="subtabs-wrap" data-l={scrollEdges.left?"1":"0"} data-r={scrollEdges.right?"1":"0"}>
+        <div className="subtabs" ref={subtabsRef} onScroll={updateEdges}>
           {ORDER.map(k=>(
-            <button key={k} className={"subtab"+(!masterMode && !shopMode && !favMode && k===cls?" on":"")} onClick={()=>{setCls(k); setView("features"); setMasterMode(false); setShopMode(false); setFavMode(false);}}>{CLASSES[k].label}</button>
+            <button key={k} className={"subtab"+(!masterMode && !shopMode && !favMode && !profileMode && k===cls?" on":"")} onClick={()=>{setCls(k); setView("features"); setMasterMode(false); setShopMode(false); setFavMode(false); setProfileMode(false);}}>{CLASSES[k].label}</button>
           ))}
-          <button className={"subtab"+(masterMode?" on":"")} style={{background: masterMode?'var(--blood)':'var(--parch)', color: masterMode?'#fff':'var(--ink)', borderColor:'var(--blood)'}} onClick={()=>{setMasterMode(true); setShopMode(false); setFavMode(false);}}>★ Master Reference</button>
-          <button className={"subtab"+(shopMode?" on":"")} style={{background: shopMode?'var(--moss)':'var(--parch)', color: shopMode?'#fff':'var(--ink)', borderColor:'var(--moss)'}} onClick={()=>{setShopMode(true); setMasterMode(false); setFavMode(false);}}>🔒 Shop &amp; Prices</button>
-          <button className={"subtab favtab"+(favMode?" on":"")} onClick={()=>{setFavMode(true); setMasterMode(false); setShopMode(false);}}>★ Favorites{stars.size>0 && <span className="favcount">{starCount}</span>}</button>
+          <button className={"subtab"+(masterMode?" on":"")} style={{background: masterMode?'var(--blood)':'var(--parch)', color: masterMode?'#fff':'var(--ink)', borderColor:'var(--blood)'}} onClick={()=>{setMasterMode(true); setShopMode(false); setFavMode(false); setProfileMode(false);}}>★ Master Reference</button>
+          <button className={"subtab"+(shopMode?" on":"")} style={{background: shopMode?'var(--moss)':'var(--parch)', color: shopMode?'#fff':'var(--ink)', borderColor:'var(--moss)'}} onClick={()=>{setShopMode(true); setMasterMode(false); setFavMode(false); setProfileMode(false);}}>🔒 Shop &amp; Prices</button>
+          <button className={"subtab favtab"+(favMode?" on":"")} onClick={()=>{setFavMode(true); setMasterMode(false); setShopMode(false); setProfileMode(false);}}>★ Favorites{stars.size>0 && <span className="favcount">{starCount}</span>}</button>
+          <button className={"subtab"+(profileMode?" on":"")} style={{background: profileMode?'var(--gold)':'var(--parch)', color: profileMode?'#fff':'var(--ink)', borderColor:'var(--gold)'}} onClick={()=>{setProfileMode(true); setMasterMode(false); setShopMode(false); setFavMode(false);}}>👤 My Character</button>
+        </div>
         </div>
 
-        {shopMode || favMode ? null : masterMode ? (
+        {shopMode || favMode || profileMode ? null : masterMode ? (
           <div className="viewtoggle">
             <button className={"vt"+(masterView==='spells'?' on':'')} onClick={()=>setMasterView('spells')}>All Spells<span className="wide"> (every caster)</span></button>
             <button className={"vt"+(masterView==='weapons'?' on':'')} onClick={()=>setMasterView('weapons')}>All Weapons<span className="wide"> (every class)</span></button>
@@ -2155,7 +2516,15 @@ function App(){
         )}
       </div>
 
-      {favMode ? (
+      {profileMode ? (
+        <div className="panel" key="profile">
+          <div className="lvhead">
+            <h2>👤 My Character</h2>
+            <span className="sub">Enter your modifiers once — your save DC, spell attack, saves &amp; more, always ready</span>
+          </div>
+          <ProfilePanel/>
+        </div>
+      ) : favMode ? (
         <div className="panel" key="fav">
           <div className="lvhead">
             <h2>★ Favorites</h2>
@@ -2197,5 +2566,5 @@ function App(){
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<StarProvider><App/></StarProvider>);
+ReactDOM.createRoot(document.getElementById("root")).render(<StarProvider><ProfileProvider><App/></ProfileProvider></StarProvider>);
 </script>
