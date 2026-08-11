@@ -1,0 +1,2201 @@
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<div id="root"></div>
+<style>
+  :root{
+    --ink:#1c1712; --parch:#f4ecd8; --parch2:#ece1c4; --edge:#c9b68a;
+    --gold:#a67c1a; --blood:#7c2b1e; --arc:#3a2d6b; --moss:#3d5a34;
+    /* starred/favorite palette — cool blue to contrast the warm parchment */
+    --star:#1d6fa5; --star-dk:#0f4a71; --star-lt:#d8ecfa; --star-lt2:#eaf5fd; --star-glow:rgba(45,140,200,.55);
+    --shadow:rgba(40,28,10,.18);
+  }
+  *{box-sizing:border-box}
+  #root{
+    font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+    color:var(--ink); background:transparent; line-height:1.55;
+    max-width:980px; margin:0 auto; padding:4px;
+  }
+  .head{text-align:center; padding:18px 12px 10px; border-bottom:3px double var(--edge); margin-bottom:14px}
+  .head h1{font-size:clamp(24px,5vw,38px); margin:0; letter-spacing:.02em; font-weight:700; color:var(--blood); text-shadow:1px 1px 0 var(--edge)}
+  .head p{margin:6px 0 0; font-size:14px; font-style:italic; color:#4a3a24}
+
+  .subtabs{display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-bottom:12px}
+  .subtab{font-family:inherit; cursor:pointer; border:2px solid var(--edge); background:var(--parch); color:var(--ink); padding:8px 12px; border-radius:8px 8px 2px 2px; font-size:14px; font-weight:600; transition:.15s; box-shadow:0 2px 0 var(--shadow)}
+  .subtab:hover{transform:translateY(-1px)}
+  .subtab.on{background:var(--ink); color:var(--parch); border-color:var(--ink)}
+
+  .levels{display:flex; flex-wrap:wrap; gap:5px; justify-content:center; margin-bottom:10px}
+  .lvbtn{font-family:inherit; cursor:pointer; width:42px; height:42px; border:2px solid var(--gold); background:var(--parch2); color:var(--ink); border-radius:50%; font-size:16px; font-weight:700; transition:.15s}
+  .lvbtn:hover{background:var(--gold); color:#fff}
+  .lvbtn.on{background:var(--blood); color:#fff; border-color:var(--blood); transform:scale(1.08)}
+  .lvlbl{width:100%; text-align:center; font-size:12px; text-transform:uppercase; letter-spacing:.15em; color:#6b5a3f; margin-bottom:4px; font-weight:700}
+
+  .viewtoggle{display:flex; gap:6px; justify-content:center; margin-bottom:16px; flex-wrap:wrap}
+  .vt{font-family:inherit; cursor:pointer; border:1px solid var(--edge); background:var(--parch); color:var(--ink); padding:6px 16px; border-radius:20px; font-size:13px; font-weight:600}
+  .vt.on{background:var(--moss); color:#fff; border-color:var(--moss)}
+
+  .panel{background:linear-gradient(180deg,var(--parch),var(--parch2)); border:1px solid var(--edge); border-radius:10px; padding:18px 20px; box-shadow:0 4px 14px var(--shadow); animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .lvhead{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; border-bottom:2px solid var(--edge); padding-bottom:8px; margin-bottom:14px}
+  .lvhead h2{margin:0; font-size:22px; color:var(--blood)}
+  .lvhead .sub{font-size:14px; color:#4a3a24; font-weight:600}
+
+  .sec{margin-bottom:18px}
+  .sec h3{font-size:13px; text-transform:uppercase; letter-spacing:.14em; color:var(--gold); margin:0 0 8px; border-left:3px solid var(--gold); padding-left:8px}
+
+  .actcard{margin:0 0 12px; padding:12px 14px; background:rgba(255,255,255,.45); border-radius:7px; border:1px solid var(--edge)}
+  .actcard .ttl{display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:5px}
+  .actcard .ttl b{font-size:15px; color:var(--arc)}
+  .actcard .meta{font-size:12px; color:#5c4a2f; margin-bottom:6px; font-weight:600}
+  .actcard .body p{margin:4px 0}
+  .actcard .body ul{margin:4px 0 4px 18px}
+  .actcard .body li{margin:2px 0}
+  .tag{display:inline-block; font-size:11px; background:var(--ink); color:var(--parch); padding:1px 8px; border-radius:20px; font-style:normal}
+  .ki{display:inline-block; background:var(--arc); color:#fff; padding:1px 8px; border-radius:5px; font-size:11px; font-weight:700}
+  .warn{background:var(--blood); color:#fff; padding:1px 7px; border-radius:5px; font-size:11px; font-weight:600}
+
+  .roll{font-family:"Courier New",monospace; background:var(--ink); color:#ffe9a8; padding:1px 6px; border-radius:4px; font-size:12.5px; white-space:nowrap}
+
+  table{width:100%; border-collapse:collapse; margin:6px 0; font-size:12.8px}
+  th,td{border:1px solid var(--edge); padding:5px 8px; text-align:left; vertical-align:top}
+  th{background:var(--ink); color:var(--parch); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.05em}
+  tr:nth-child(even) td{background:rgba(255,255,255,.35)}
+  td.nm{white-space:nowrap; font-weight:600}
+  .conc{color:var(--blood); font-weight:700; font-size:11px} .rit{color:var(--moss); font-weight:700; font-size:11px}
+
+  .note{font-size:13.5px; color:#3a2f1e; margin-top:6px; line-height:1.5; font-weight:500}
+
+  .dcbar{display:flex; gap:10px; flex-wrap:wrap; margin:0 0 16px; padding:12px 14px; background:var(--ink); border-radius:8px; border:2px solid var(--gold)}
+  .dcitem{flex:1; min-width:150px; text-align:center; padding:4px 8px}
+  .dcitem .lbl{font-size:10.5px; text-transform:uppercase; letter-spacing:.12em; color:#ffe9a8; opacity:.85; margin-bottom:3px}
+  .dcitem .val{font-size:20px; font-weight:800; color:#fff; font-family:"Courier New",monospace}
+  .dcitem .sub{font-size:11px; color:#ffe9a8; margin-top:2px; font-weight:600}
+  .dcdivider{width:1px; background:rgba(255,233,168,.3); align-self:stretch}
+  .slots{display:flex; gap:6px; flex-wrap:wrap; margin:8px 0}
+  .slot{background:var(--arc); color:#fff; padding:3px 9px; border-radius:5px; font-size:12px; font-weight:600}
+  .pill{display:inline-block; background:var(--moss); color:#fff; padding:1px 7px; border-radius:5px; font-size:11px; margin:1px 2px; font-weight:600}
+  .pill.dom{background:var(--gold)}
+  .legend{font-size:12.5px; color:#3a2f1e; margin:8px 0; display:flex; gap:14px; flex-wrap:wrap; font-weight:500}
+  .foot{text-align:center; font-size:12px; color:#5c4a2f; margin-top:18px; font-style:italic}
+
+  /* ---- Search / filter ---- */
+  .searchwrap{
+    position:sticky; top:0; z-index:15;
+    background:linear-gradient(180deg,var(--parch) 78%,rgba(244,236,216,0));
+    padding:10px 0 12px; margin:-4px 0 10px;
+  }
+  .searchrow{
+    display:flex; align-items:center; gap:8px;
+    background:#fff; border:2px solid var(--edge); border-radius:10px;
+    padding:0 12px; box-shadow:0 2px 6px var(--shadow);
+    transition:border-color .15s;
+  }
+  .searchrow:focus-within{border-color:var(--gold)}
+  .searchicon{font-size:19px; color:var(--gold); font-weight:700; line-height:1}
+  .searchinput{
+    flex:1; border:0; outline:0; background:transparent;
+    font-family:inherit; font-size:15px; color:var(--ink);
+    padding:11px 0; min-width:0;
+  }
+  .searchinput::placeholder{color:#9c8a68}
+  .searchinput::-webkit-search-cancel-button{display:none}
+  .searchclear{
+    border:0; background:var(--edge); color:var(--ink); cursor:pointer;
+    width:26px; height:26px; border-radius:50%; font-size:13px; font-weight:700;
+    font-family:inherit; line-height:1; flex:0 0 auto;
+  }
+  .searchclear:hover{background:var(--blood); color:#fff}
+  .searchcount{font-size:12px; color:#5c4a2f; font-weight:600; margin:6px 2px 0}
+  .emptymsg{
+    padding:16px; text-align:center; color:#5c4a2f;
+    background:rgba(255,255,255,.45); border:1px dashed var(--edge); border-radius:8px;
+    font-size:13.5px;
+  }
+  .chiprow{display:flex; gap:6px; flex-wrap:wrap; margin:0 0 14px}
+  .chip{
+    font-family:inherit; cursor:pointer; border:1.5px solid var(--edge);
+    background:var(--parch); color:var(--ink); padding:6px 13px;
+    border-radius:20px; font-size:13px; font-weight:600; transition:.15s;
+  }
+  .chip:hover{border-color:var(--gold)}
+  .chip.on{background:var(--arc); color:#fff; border-color:var(--arc)}
+
+  /* ---- Starred spells ---- */
+  .starbtn{
+    background:none; border:0; cursor:pointer; font-family:inherit;
+    font-size:19px; line-height:1; padding:2px 4px; display:inline-block;
+    color:#b0a081; transition:transform .12s, color .12s;
+  }
+  .starbtn:hover{transform:scale(1.25); color:var(--star)}
+  .starbtn.on{color:#1d8fd1; font-size:22px; text-shadow:0 0 7px var(--star-glow), 0 1px 2px rgba(0,0,0,.28)}
+  .starcell{text-align:center; vertical-align:middle}
+  .mobstar{display:none}   /* desktop uses the dedicated star column instead */
+  /* Starred rows get a gold spine + warm tint so they pop while scrolling */
+  /* Starred rows: heavy gold treatment so they're impossible to miss */
+  tr.starred td{
+    background:linear-gradient(90deg,var(--star-lt),var(--star-lt2) 40%) !important;
+    border-top:2px solid var(--star); border-bottom:2px solid var(--star);
+  }
+  tr.starred td:first-child{
+    box-shadow:inset 5px 0 0 var(--star);
+    border-left:2px solid var(--star);
+  }
+  tr.starred td:last-child{border-right:2px solid var(--star)}
+  tr.starred td.nm{
+    color:var(--star-dk); font-weight:800;
+    text-shadow:0 1px 0 rgba(255,255,255,.75);
+  }
+  tr.starred td.nm::after{
+    content:"★ STARRED"; display:inline-block; margin-left:8px;
+    background:var(--star); color:#fff; font-size:9px; font-weight:800;
+    letter-spacing:.1em; padding:2px 7px; border-radius:20px;
+    vertical-align:middle; white-space:nowrap;
+  }
+  .favtab{
+    background:linear-gradient(180deg,#e8f4fc,#cfe6f7); color:var(--star-dk);
+    border-color:var(--star) !important; font-weight:700;
+  }
+  .favtab.on{background:linear-gradient(180deg,#2585c0,#1d6fa5) !important; color:#fff !important; border-color:var(--star-dk) !important}
+  .favcount{
+    display:inline-block; margin-left:6px; background:var(--blood); color:#fff;
+    border-radius:20px; padding:1px 7px; font-size:11px; font-weight:800; vertical-align:middle;
+  }
+  .favtab.on .favcount{background:#fff; color:var(--star-dk)}
+  /* ---- DM password gate ---- */
+  .dmgate{
+    display:flex; flex-direction:column; align-items:center; text-align:center;
+    padding:40px 20px; background:rgba(255,255,255,.45);
+    border:2px dashed var(--edge); border-radius:12px;
+  }
+  .dmlock{font-size:42px; line-height:1; margin-bottom:10px}
+  .dmtitle{font-size:20px; font-weight:800; color:var(--blood); letter-spacing:.03em}
+  .dmsub{font-size:14px; color:#4a3a24; margin:6px 0 16px; max-width:380px}
+  .dmrow{display:flex; gap:8px; flex-wrap:wrap; justify-content:center}
+  .dminput{
+    font-family:inherit; font-size:16px; padding:11px 14px; min-width:170px;
+    border:2px solid var(--edge); border-radius:9px; background:#fff; color:var(--ink);
+    outline:none; text-align:center; letter-spacing:.25em;
+  }
+  .dminput:focus{border-color:var(--star)}
+  .dminput.err{border-color:var(--blood); background:#fdf0ee}
+  .dmbtn{
+    font-family:inherit; font-size:15px; font-weight:700; cursor:pointer;
+    padding:11px 22px; border-radius:9px; border:2px solid var(--blood);
+    background:var(--blood); color:#fff; min-height:46px;
+  }
+  .dmbtn:hover{background:#5e2016}
+  .dmerr{color:var(--blood); font-weight:700; font-size:13px; margin-top:10px}
+  .dmunlocked{
+    display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    background:#eaf5ea; border:1.5px solid var(--moss); border-radius:9px;
+    padding:9px 13px; margin:0 0 14px; font-size:13.5px; color:#24401d;
+  }
+  .dmunlocked button{
+    font-family:inherit; cursor:pointer; border:1.5px solid var(--moss);
+    background:#fff; color:#24401d; padding:6px 14px; border-radius:16px;
+    font-size:12.5px; font-weight:600; min-height:36px;
+  }
+  .dmunlocked button:hover{border-color:var(--blood); color:var(--blood)}
+  .starbar{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    background:var(--star-lt2); border:1.5px solid var(--star); border-radius:9px;
+    padding:9px 13px; margin:0 0 12px;
+  }
+  .starbar .lbl{font-weight:700; color:var(--star-dk); font-size:13.5px}
+  .starbar .cnt{background:var(--star); color:#fff; border-radius:20px; padding:1px 9px; font-size:12px; font-weight:700}
+  .starbar button{
+    font-family:inherit; cursor:pointer; border:1.5px solid var(--edge);
+    background:#fff; color:var(--ink); padding:5px 12px; border-radius:16px;
+    font-size:12.5px; font-weight:600;
+  }
+  .starbar button:hover{border-color:var(--blood); color:var(--blood)}
+
+  /* ============ MOBILE / TABLET ============ */
+  /* Desktop layout above 760px is untouched. */
+  @media(max-width:760px){
+    #root{padding:0 6px; -webkit-text-size-adjust:100%}
+    .wide{display:none}   /* trims verbose button labels on small screens */
+
+    /* Compact header, reclaim vertical space */
+    .head{padding:12px 8px 8px; margin-bottom:10px}
+    .head h1{font-size:26px}
+    .head p{font-size:12.5px; line-height:1.4}
+
+    /* Sticky nav: class tabs + level buttons stay reachable while scrolling */
+    .navwrap{
+      position:sticky; top:0; z-index:20;
+      background:var(--parch); margin:0 -6px; padding:8px 6px 6px;
+      border-bottom:2px solid var(--edge); box-shadow:0 2px 8px rgba(40,28,10,.14);
+    }
+    /* Class tabs become a horizontal swipe strip so they never wrap to 3 lines */
+    .subtabs{
+      flex-wrap:nowrap; overflow-x:auto; justify-content:flex-start;
+      gap:6px; margin-bottom:8px; padding-bottom:4px;
+      scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch;
+    }
+    .subtabs::-webkit-scrollbar{height:3px}
+    .subtabs::-webkit-scrollbar-thumb{background:var(--edge); border-radius:3px}
+    .subtab{
+      flex:0 0 auto; scroll-snap-align:start;
+      padding:9px 13px; font-size:13.5px; min-height:42px; border-radius:8px;
+    }
+
+    /* Bigger, thumb-friendly level circles */
+    .levels{gap:7px; margin-bottom:8px}
+    .lvbtn{width:46px; height:46px; font-size:17px}
+    .lvlbl{font-size:11px; margin-bottom:3px}
+
+    /* View toggles: full-width pills, easy to hit */
+    .viewtoggle{gap:6px; margin-bottom:12px}
+    .vt{flex:1 1 auto; min-height:44px; padding:9px 12px; font-size:13.5px; border-radius:10px}
+
+    .panel{padding:12px 11px; border-radius:8px}
+    .lvhead{padding-bottom:7px; margin-bottom:11px}
+    .lvhead h2{font-size:19px}
+    .lvhead .sub{font-size:12.5px}
+
+    /* DC bar stacks vertically — the numbers stay big and scannable */
+    .dcbar{flex-direction:column; gap:0; padding:10px 12px}
+    .dcitem{min-width:0; padding:7px 4px; width:100%}
+    .dcitem .val{font-size:19px}
+    .dcdivider{width:100%; height:1px; align-self:auto; margin:2px 0}
+
+    .sec h3{font-size:12.5px; margin-bottom:8px; color:#8a6510}
+    .actcard{padding:11px 12px}
+    .actcard .ttl b{font-size:15.5px}
+    .actcard .body{font-size:14px; color:#241d13}
+    .actcard .meta{font-size:12.5px; color:#4a3a20}
+    .note{font-size:13.5px; color:#2e2617}
+    /* Conc / Ritual tags: larger and darker so they read at arm's length */
+    .conc{font-size:12px; color:#6d2418}
+    .rit{font-size:12px; color:#2f4a27}
+    .legend{flex-direction:column; gap:6px; font-size:12.5px; color:#2e2617}
+
+    /* Search stays reachable under the sticky nav */
+    .searchwrap{top:0; padding:8px 0 10px; margin:-2px 0 8px}
+    .searchinput{font-size:16px; padding:12px 0}  /* 16px prevents iOS zoom-on-focus */
+    .searchclear{width:30px; height:30px}
+    .chiprow{gap:5px; margin-bottom:12px; overflow-x:auto; flex-wrap:nowrap; padding-bottom:3px}
+    .chip{flex:0 0 auto; min-height:38px; padding:7px 14px; font-size:13px}
+
+    /* Stars on mobile: move the star into the dark name banner, top-right */
+    .rtable td.starcell{
+      display:none;   /* hide the standalone star row in card layout */
+    }
+    .rtable td.nm{position:relative; padding-right:46px}
+    .rtable tr.starred{border-color:var(--star); border-width:2.5px; box-shadow:0 2px 12px var(--star-glow)}
+    .rtable tr.starred td.nm{
+      background:linear-gradient(90deg,var(--star-dk),var(--star)) !important;
+      color:#f2fbff !important; border-bottom-color:#7fc4ec;
+    }
+    .rtable tr.starred td{background:var(--star-lt2) !important}
+    .rtable tr.starred td.nm::after{font-size:8.5px; padding:2px 6px; margin-left:6px; background:#fff; color:var(--star-dk)}
+    .mobstar{
+      display:block;
+      position:absolute; right:8px; top:50%; transform:translateY(-50%);
+      font-size:23px; padding:4px 6px; min-width:36px; min-height:36px;
+    }
+    .favtab{
+    background:linear-gradient(180deg,#e8f4fc,#cfe6f7); color:var(--star-dk);
+    border-color:var(--star) !important; font-weight:700;
+  }
+  .favtab.on{background:linear-gradient(180deg,#2585c0,#1d6fa5) !important; color:#fff !important; border-color:var(--star-dk) !important}
+  .favcount{
+    display:inline-block; margin-left:6px; background:var(--blood); color:#fff;
+    border-radius:20px; padding:1px 7px; font-size:11px; font-weight:800; vertical-align:middle;
+  }
+  .favtab.on .favcount{background:#fff; color:var(--star-dk)}
+  .starbar{padding:10px 12px; gap:8px}
+    .starbar .note{flex:1 1 100%; font-size:12px}
+    .starbar button{min-height:38px; padding:7px 14px}
+
+    /* --- Responsive tables: each row becomes a labeled card --- */
+    .rtable, .rtable tbody, .rtable tr, .rtable td{display:block; width:100%}
+    .rtable thead{display:none}          /* headers move into each cell via data-label */
+    .rtable{border-collapse:separate; border-spacing:0}
+    .rtable tr{
+      margin:0 0 12px; padding:0;
+      border:1.5px solid var(--edge); border-radius:9px;
+      background:#fbf6e9; overflow:hidden;
+      box-shadow:0 1px 3px rgba(40,28,10,.10);
+    }
+    /* Neutralize the desktop zebra-striping inside cards. Scoped to :not(.nm)
+       so it can never strip the name banner's dark background (that bug made
+       every even row's spell name pale-on-pale and unreadable). */
+    .rtable tr:nth-child(even) td:not(.nm){background:transparent}
+    .rtable td{
+      border:0; border-bottom:1px solid rgba(201,182,138,.55);
+      padding:9px 12px; font-size:14px; line-height:1.55;
+      color:#241d13;                    /* darker body text for contrast */
+      white-space:normal !important;    /* override .nm nowrap so names wrap */
+    }
+    .rtable td:last-child{border-bottom:0}
+    /* The label chip above each value */
+    .rtable td::before{
+      content:attr(data-label);
+      display:block; font-size:10px; text-transform:uppercase; letter-spacing:.11em;
+      color:#6b5836; font-weight:800; margin-bottom:3px;
+    }
+    /* First cell = the row's title: dark banner so cards are easy to tell apart.
+       !important guards the banner against any competing background rule. */
+    .rtable td.nm,
+    .rtable tr:nth-child(even) td.nm{
+      background:var(--ink) !important; color:#fff6e0 !important;
+      font-size:16px; font-weight:700; padding:11px 12px;
+      border-bottom:2px solid var(--gold);
+      letter-spacing:.01em;
+    }
+    .rtable td.nm::before{color:#e0c98a}
+    /* Roll chips and tags need to stay legible on the dark banner too */
+    .rtable td.nm .roll{background:#000; color:#ffe9a8}
+    /* Hide empty placeholder cells (e.g. "—") to save space */
+    .rtable td:empty{display:none}
+
+    /* Roll chips wrap instead of forcing horizontal scroll */
+    .roll{white-space:normal; display:inline-block; line-height:1.7}
+
+    .foot{font-size:11px; padding:0 6px}
+  }
+
+  /* Very small phones */
+  @media(max-width:380px){
+    .lvbtn{width:42px; height:42px; font-size:16px}
+    .subtab{padding:8px 11px; font-size:13px}
+    .dcitem .val{font-size:17px}
+    .rtable td{font-size:13px}
+  }
+
+  /* Respect users who prefer less motion */
+  @media(prefers-reduced-motion:reduce){
+    .panel{animation:none}
+    .subtab,.lvbtn,.vt{transition:none}
+  }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+
+<script type="text/babel" data-presets="react">
+const {useState} = React;
+
+const Roll = ({children}) => <span className="roll">{children}</span>;
+const Sec = ({title, children}) => (<div className="sec"><h3>{title}</h3>{children}</div>);
+
+/* ---- Search helpers ----
+   Spell/weapon descriptions are JSX, not strings, so pull the plain text out
+   recursively in order to match against a query. */
+function nodeText(node){
+  if(node==null || node===false || node===true) return "";
+  if(typeof node==="string" || typeof node==="number") return String(node);
+  if(Array.isArray(node)) return node.map(nodeText).join(" ");
+  if(node.props) return nodeText(node.props.children);
+  return "";
+}
+function rowText(row){ return row.map(nodeText).join(" ").toLowerCase(); }
+/* Common table-speak → the words actually used in the spell text, so that
+   searching "heal" finds "regains hit points", "aoe" finds radius/cone, etc. */
+const SEARCH_ALIASES = {
+  heal:["regain","restore","hit points","cure","healing"],
+  healing:["regain","restore","hit points","cure"],
+  aoe:["radius","cone","cube","sphere","line","each creature"],
+  area:["radius","cone","cube","sphere","line"],
+  damage:["d4","d6","d8","d10","d12","damage"],
+  buff:["advantage","bonus","temp hp","resistance","+1","+2"],
+  debuff:["disadvantage","save or","reduced","halved","cursed"],
+  control:["restrained","paralyzed","prone","incapacitated","stunned","charmed","difficult terrain"],
+  cc:["restrained","paralyzed","prone","incapacitated","charmed","frightened"],
+  concentration:["conc"],
+  ranged:["ft,","range"],
+  revive:["dead","died","raise","revivify","life"],
+  teleport:["teleport","misty step","dimension door"],
+  summon:["conjure","summon","animate","familiar"],
+};
+function filterRows(rows, q){
+  const s = q.trim().toLowerCase();
+  if(!s) return rows;
+  const terms = s.split(/\s+/);
+  return rows.filter(r=>{
+    const t = rowText(r);
+    return terms.every(term=>{
+      if(t.includes(term)) return true;
+      const alts = SEARCH_ALIASES[term];
+      return alts ? alts.some(a=>t.includes(a)) : false;
+    });
+  });
+}
+function SearchBox({value, onChange, placeholder, count, total}){
+  return (
+    <div className="searchwrap">
+      <div className="searchrow">
+        <span className="searchicon" aria-hidden="true">⌕</span>
+        <input
+          className="searchinput"
+          type="search"
+          value={value}
+          placeholder={placeholder}
+          onChange={e=>onChange(e.target.value)}
+          autoComplete="off" autoCorrect="off" spellCheck="false"
+        />
+        {value && <button className="searchclear" onClick={()=>onChange("")} aria-label="Clear search">✕</button>}
+      </div>
+      {value && <div className="searchcount">{count} of {total} shown{count===0?" — try a shorter term":""}</div>}
+    </div>
+  );
+}
+const Slots = ({arr}) => (<div className="slots">{arr.map((n,i)=> n>0 ? <span key={i} className="slot">L{i+1}: {n}</span> : null)}</div>);
+const C = () => <span className="conc">Conc</span>;
+const RIT = () => <span className="rit">Ritual</span>;
+
+// Detailed action card: name, meta line (cost/type/range), body = array of paragraph/list nodes
+const Act = ({name, meta, children}) => (
+  <div className="actcard">
+    <div className="ttl"><b>{name}</b></div>
+    {meta && <div className="meta">{meta}</div>}
+    <div className="body">{children}</div>
+  </div>
+);
+
+/* ============================================================
+   STARRED SPELLS — persistent favorites across tabs & sessions
+   Tries localStorage so stars survive closing the file; falls back
+   to in-memory if storage is unavailable (e.g. sandboxed viewer).
+============================================================ */
+const STAR_KEY = "dnd_codex_starred_v1";
+function loadStars(){
+  try{
+    const raw = window.localStorage.getItem(STAR_KEY);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  }catch(e){ return new Set(); }
+}
+function saveStars(set){
+  try{ window.localStorage.setItem(STAR_KEY, JSON.stringify(Array.from(set))); }
+  catch(e){ /* storage blocked — stars still work for this session */ }
+}
+const StarCtx = React.createContext(null);
+function StarProvider({children}){
+  const [stars, setStars] = useState(()=>loadStars());
+  const toggle = (id)=>{
+    setStars(prev=>{
+      const next = new Set(prev);
+      if(next.has(id)) next.delete(id); else next.add(id);
+      saveStars(next);
+      return next;
+    });
+  };
+  const clearAll = ()=>{ const empty=new Set(); saveStars(empty); setStars(empty); };
+  return <StarCtx.Provider value={{stars, toggle, clearAll}}>{children}</StarCtx.Provider>;
+}
+function useStars(){ return React.useContext(StarCtx) || {stars:new Set(), toggle:()=>{}, clearAll:()=>{}}; }
+// Stable ID for a spell: its name is unique enough across the whole book,
+// and using the name alone means starring Fireball on the Wizard tab also
+// shows it starred in Master Reference.
+const spellId = (row)=> "s:"+nodeText(row[0]).trim().toLowerCase();
+function StarBtn({id, mobile}){
+  const {stars, toggle} = useStars();
+  const on = stars.has(id);
+  return (
+    <button
+      className={"starbtn"+(on?" on":"")+(mobile?" mobstar":"")}
+      onClick={(e)=>{e.stopPropagation(); toggle(id);}}
+      aria-label={on?"Remove from starred":"Add to starred"}
+      title={on?"Starred — click to remove":"Click to star this spell"}
+    >{on?"★":"☆"}</button>
+  );
+}
+
+const SpellTable = ({rows}) => {
+  const {stars} = useStars();
+  return (
+  <table className="rtable"><thead><tr><th style={{width:'4%'}}>★</th><th style={{width:'22%'}}>Spell</th><th style={{width:'13%'}}>Type</th><th>Full Effect &amp; Roll (2014 PHB/SRD)</th></tr></thead>
+  <tbody>{rows.map((r,i)=>{
+    const id = spellId(r);
+    return (<tr key={i} className={stars.has(id)?"starred":""}>
+      <td className="starcell" data-label="Star"><StarBtn id={id}/></td>
+      <td className="nm" data-label="Spell">{r[0]}<StarBtn id={id} mobile/></td>
+      <td data-label="Type">{r[1]}</td>
+      <td data-label="Effect">{r[2]}</td>
+    </tr>);
+  })}</tbody></table>
+  );
+};
+const casterNote = (stat, prof) => (<div className="note">"Upcast" = cast using a higher slot for the listed extra scaling. Numbers above already include your prof bonus at this tier (+{prof}) — just add your {stat} modifier.</div>);
+function DCBar({statLabel, prof}){
+  const dc = 8 + prof;
+  const atk = prof;
+  return (
+    <div className="dcbar">
+      <div className="dcitem">
+        <div className="lbl">Spell Save DC</div>
+        <div className="val">{dc} + {statLabel} mod</div>
+        <div className="sub">= 8 + prof({prof}) + {statLabel}</div>
+      </div>
+      <div className="dcdivider"></div>
+      <div className="dcitem">
+        <div className="lbl">Spell Attack Roll</div>
+        <div className="val">d20 +{atk} + {statLabel} mod</div>
+        <div className="sub">= d20 + prof({prof}) + {statLabel}</div>
+      </div>
+    </div>
+  );
+}
+function KiDCBar({lv}){
+  const prof = lv>=5?3:2;
+  const dc = 8+prof;
+  return (
+    <div className="dcbar">
+      <div className="dcitem">
+        <div className="lbl">Ki Save DC</div>
+        <div className="val">{dc} + WIS mod</div>
+        <div className="sub">= 8 + prof({prof}) + WIS</div>
+      </div>
+      <div className="dcdivider"></div>
+      <div className="dcitem">
+        <div className="lbl">Unarmed / Monk Weapon Attack</div>
+        <div className="val">d20 +{prof} + DEX or STR</div>
+        <div className="sub">= d20 + prof({prof}) + STR/DEX</div>
+      </div>
+    </div>
+  );
+}
+const legend = <div className="legend"><span><span className="conc">Conc</span> = requires concentration (breaks if you take damage and fail a CON save, DC = 10 or half damage taken, whichever is higher; also breaks if you cast another concentration spell)</span><span><span className="rit">Ritual</span> = can be cast as a 10-min ritual without using a slot, if you have the spell prepared/known</span></div>;
+
+// Weapon table renderer: rows = [name, dmgDie, dmgType, properties, range/notes]
+function WeaponTable({rows, atkFormula, dmgFormula, note}){
+  return (<>
+    <table className="rtable"><thead><tr><th style={{width:'18%'}}>Weapon</th><th style={{width:'12%'}}>Damage</th><th style={{width:'16%'}}>Properties</th><th>Notes / Range</th></tr></thead>
+    <tbody>{rows.map((r,i)=>(<tr key={i}><td className="nm" data-label="Weapon">{r[0]}</td><td data-label="Damage">{r[1]}</td><td data-label="Properties">{r[2]}</td><td data-label="Notes">{r[3]}</td></tr>))}</tbody></table>
+    <div className="note"><b>Attack roll</b> = <Roll>{atkFormula}</Roll> &nbsp;|&nbsp; <b>Damage roll</b> = <Roll>{dmgFormula}</Roll>. {note}</div>
+  </>);
+}
+
+/* ============================================================
+   WEAPON DATA PER CLASS
+============================================================ */
+const simpleMelee = [
+  ["Club","1d4 bludg.","Light","One-handed"],
+  ["Dagger","1d4 pierc.","Finesse, Light, Thrown","Range 20/60 ft; can be thrown"],
+  ["Greatclub","1d8 bludg.","Two-handed","Two hands required"],
+  ["Handaxe","1d6 slash.","Light, Thrown","Range 20/60 ft"],
+  ["Javelin","1d6 pierc.","Thrown","Range 30/120 ft"],
+  ["Light hammer","1d4 bludg.","Light, Thrown","Range 20/60 ft"],
+  ["Mace","1d6 bludg.","—","One-handed"],
+  ["Quarterstaff","1d6 bludg. (1d8 2h)","Versatile","+1 die size two-handed"],
+  ["Sickle","1d4 slash.","Light","One-handed"],
+  ["Spear","1d6 pierc. (1d8 2h)","Thrown, Versatile","Range 20/60 ft; +1 die 2h"],
+];
+const simpleRanged = [
+  ["Crossbow, light","1d8 pierc.","Ammunition, Loading, Two-handed","Range 80/320 ft"],
+  ["Dart","1d4 pierc.","Finesse, Thrown","Range 20/60 ft"],
+  ["Shortbow","1d6 pierc.","Ammunition, Two-handed","Range 80/320 ft"],
+  ["Sling","1d4 bludg.","Ammunition","Range 30/120 ft"],
+];
+const bardMartial = [
+  ["Hand crossbow","1d6 pierc.","Ammunition, Light, Loading","Range 30/120 ft (bard-specific proficiency)"],
+  ["Longsword","1d8 slash. (1d10 2h)","Versatile","One or two-handed"],
+  ["Rapier","1d8 pierc.","Finesse","Great for DEX-based bards"],
+  ["Shortsword","1d6 pierc.","Finesse, Light","Good off-hand / dual-wield option"],
+];
+const monkWeapons = [
+  ["Unarmed strike","Martial Arts die","—","Uses DEX or STR; no die floor below 1d4"],
+  ["Shortsword","1d6 pierc.","Finesse, Light","Always a monk weapon regardless of subclass"],
+  ["Club","1d4 bludg.","Light","Monk weapon (simple, not two-handed/heavy)"],
+  ["Dagger","1d4 pierc.","Finesse, Light, Thrown","Monk weapon; range 20/60 ft"],
+  ["Handaxe","1d6 slash.","Light, Thrown","Monk weapon; range 20/60 ft"],
+  ["Javelin","1d6 pierc.","Thrown","Monk weapon; range 30/120 ft"],
+  ["Light hammer","1d4 bludg.","Light, Thrown","Monk weapon; range 20/60 ft"],
+  ["Mace","1d6 bludg.","—","Monk weapon"],
+  ["Quarterstaff","1d6 bludg. (1d8 2h)","Versatile","Monk weapon; loses monk status if wielded two-handed for the +1 die (still allowed, just uncommon at your table — confirm with DM)"],
+  ["Sickle","1d4 slash.","Light","Monk weapon"],
+  ["Spear","1d6 pierc. (1d8 2h)","Thrown, Versatile","Monk weapon; range 20/60 ft"],
+  ["Dart","1d4 pierc.","Finesse, Thrown","Monk weapon; range 20/60 ft"],
+];
+const clericWeapons = simpleMelee.concat(simpleRanged);
+const druidWeapons = [
+  ["Club","1d4 bludg.","Light","—"],
+  ["Dagger","1d4 pierc.","Finesse, Light, Thrown","Range 20/60 ft"],
+  ["Dart","1d4 pierc.","Finesse, Thrown","Range 20/60 ft"],
+  ["Javelin","1d6 pierc.","Thrown","Range 30/120 ft"],
+  ["Mace","1d6 bludg.","—","—"],
+  ["Quarterstaff","1d6 bludg. (1d8 2h)","Versatile","Shillelagh cantrip turns this into a WIS-based 1d8 magic weapon"],
+  ["Scimitar","1d6 slash.","Finesse, Light","Only martial weapon druids are proficient with"],
+  ["Sickle","1d4 slash.","Light","—"],
+  ["Sling","1d4 bludg.","Ammunition","Range 30/120 ft"],
+  ["Spear","1d6 pierc. (1d8 2h)","Thrown, Versatile","Range 20/60 ft"],
+];
+const wizardWeapons = [
+  ["Dagger","1d4 pierc.","Finesse, Light, Thrown","Range 20/60 ft — the classic wizard sidearm, DEX-based"],
+  ["Dart","1d4 pierc.","Finesse, Thrown","Range 20/60 ft"],
+  ["Sling","1d4 bludg.","Ammunition","Range 30/120 ft"],
+  ["Quarterstaff","1d6 bludg. (1d8 2h)","Versatile","One-handed to keep the other hand free for somatic components"],
+  ["Light crossbow","1d8 pierc.","Ammunition, Loading, Two-handed","Range 80/320 ft — best raw damage of the five, but needs both hands (no shield/focus in that hand while loading)"],
+];
+
+/* ============================================================
+   BARD spell lists (full candidate lists, unabridged text)
+============================================================ */
+const bardCant = [
+  ["Vicious Mockery",<><C/></>,<>60 ft, V only. WIS save or target takes <Roll>1d4</Roll> psychic damage and has disadvantage on the next attack roll it makes before your next turn. Damage becomes <Roll>2d4</Roll> at 5th level, <Roll>3d4</Roll> at 11th, <Roll>4d4</Roll> at 17th.</>],
+  ["Mage Hand","—","30 ft, V/S. Spectral hand can manipulate objects, open unlocked doors/containers, pour, stow/retrieve items, but can't attack or carry >10 lb. Lasts 1 min; you can dismiss as an action."],
+  ["Minor Illusion","—","30 ft, S/M. Creates one 5-ft cube sound OR image (not both). Illusion lasts 1 min; a creature can use its action to inspect and Intelligence(Investigation) check vs your spell save DC to see through it."],
+  ["Prestidigitation","—","10 ft, V/S. One of several minor magical effects: light a candle, clean/soil an object, chill/warm/flavor food, create a harmless sensory effect, or a tiny 1-hr trinket. No combat use."],
+  ["Message","—","120 ft, V/S/M. Whisper a message to one creature you can see; it hears it and can reply in a whisper only you hear. 1 round duration."],
+  ["Dancing Lights",<><C/></>,"120 ft, V/S/M. Create up to 4 torch-sized lights that hover and move up to 60 ft/round as a bonus action, or combine into one vaguely humanoid shape."],
+  ["Light","—","Touch, V/M. Object sheds 20-ft bright + 20-ft dim light for 1 hr. If cast on a creature's held/worn object, that creature gets a DEX save to avoid it."],
+  ["Mending","—","Touch, V/S/M, 1 min cast. Repairs a single break or tear in an object (not constructs/undead)."],
+  ["True Strike",<><C/></>,"30 ft, S, 1 action to cast + 1 round wait. Gain advantage on your very next attack roll against the target before the end of your next turn. Rarely worth the action economy cost in combat."],
+];
+const bard1 = [
+  ["Healing Word","Bonus Action, 60 ft, V",<>Choose a creature you can see; it regains <Roll>1d4 + CHA mod</Roll> HP. Doesn't cure conditions. Upcast: +<Roll>1d4</Roll> per slot level above 1st.</>],
+  ["Cure Wounds","Action, Touch, V/S",<>Target you touch regains <Roll>1d8 + CHA mod</Roll> HP. No effect on undead/constructs. Upcast: +<Roll>1d8</Roll> per slot level above 1st.</>],
+  ["Dissonant Whispers","Action, 60 ft, V",<>Target makes a <Roll>WIS save</Roll>; on failure, takes <Roll>3d6</Roll> psychic damage and must immediately use its reaction (if available) to move away from you by the safest route (provoking opportunity attacks). On a success, half damage and no forced movement. Upcast: +<Roll>1d6</Roll> per slot above 1st.</>],
+  ["Faerie Fire",<><C/>, Action, 60 ft, V</>,<>20-ft cube; each creature in it makes a <Roll>DEX save</Roll> or becomes outlined in light (visible even invisible) for the duration. Attack rolls against an affected creature have advantage, and it can't benefit from being invisible while outlined.</>],
+  ["Tasha's Hideous Laughter",<><C/>, Action, 30 ft, V/S/M</>,<>Target makes a <Roll>WIS save</Roll> (advantage if immune to being distracted, e.g., no sense of humor) or falls prone, incapacitated, and unable to stand for the duration. At end of each of its turns and whenever it takes damage, it repeats the save, ending the effect on success.</>],
+  ["Sleep","Action, 90 ft, V/S/M",<>Roll <Roll>5d8</Roll>; total = HP of creatures affected, starting with the one with the lowest current HP. Unconscious creatures with HP ≤ remaining total fall asleep (unconscious) until the spell ends, they take damage, or someone uses an action to shake/slap them awake. Doesn't affect undead or creatures immune to being charmed. Upcast: +<Roll>2d8</Roll> per slot above 1st.</>],
+  ["Charm Person","Action, 30 ft, V/S",<>Target makes a <Roll>WIS save</Roll> (advantage if you or your allies are fighting it) or is charmed by you for 1 hr or until you/your allies harm it. It knows it was charmed once the spell ends.</>],
+  ["Bane",<><C/>, Action, 30 ft, V/S/M</>,<>Up to 3 creatures make a <Roll>CHA save</Roll> or, for the duration, subtract <Roll>1d4</Roll> from every attack roll and saving throw they make. Upcast: +1 target per slot above 1st.</>],
+  ["Heroism",<><C/>, Action, Touch, V/S</>,<>Willing creature is immune to being frightened and gains <Roll>CHA mod</Roll> temp HP at the start of each of its turns for the duration. When the spell ends, it loses any remaining temp HP from this spell. Upcast: +1 target per slot above 1st.</>],
+  ["Thunderwave",<><C/> — instant, Action, Self (15-ft cube)</>,<>V/S. Each creature in a 15-ft cube from you makes a CON save; on a fail, <Roll>2d8</Roll> thunder damage and pushed 10 ft away; on success, half damage and no push. Unsecured objects in the area are also pushed. Upcast: +1d8 per slot above 1st.</>],
+  ["Comprehend Languages",<><RIT/>, Action, Self, V/S/M</>,<>For 1 hr, you understand the literal meaning of any spoken language you hear, and any written language you touch (1 min per page to read). Doesn't decode magically encrypted text or let you speak the language.</>],
+  ["Detect Magic",<><C/> <RIT/>, Action, Self, V/S</>,<>For 10 min, sense the presence of magic within 30 ft. If you sense it, use your action to see a faint aura around the visible magic source/creature and learn its school of magic if any.</>],
+  ["Disguise Self","Action, Self, V/S",<>For 1 hr, change your appearance (height ±1 ft, weight, facial features, etc.) — illusory only, doesn't change your stats. A creature can use its action to make an <Roll>INT (Investigation) check vs your spell save DC</Roll> to see through it.</>],
+  ["Feather Fall","Reaction (when you or a creature within 60 ft falls), 60 ft, V/M",<>Up to 5 falling creatures' fall speed slows to 60 ft/round; they take no fall damage if they land before the spell ends (1 min).</>],
+  ["Identify",<><RIT/>, Action, Touch, V/S/M</>,<>Learn the properties of one magic item (how to use it, if it requires attunement, charges) or the nature of a spell affecting a creature/object.</>],
+  ["Silent Image",<><C/>, Action, 60 ft, V/S/M</>,<>Create a purely visual illusion (no sound/smell/texture) occupying a 15-ft cube; you can mentally move it within range as an action. Physical interaction reveals it as an illusion.</>],
+  ["Longstrider","Action, Touch, V/S/M",<>Target's speed increases by 10 ft for 1 hr.</>],
+  ["Speak with Animals",<><RIT/>, Action, Self, V/S</>,<>For 10 min, you understand and can verbally communicate with beasts (limited by their intelligence — they may not have anything useful to say).</>],
+  ["Animal Friendship","Action, 30 ft, V/S/M",<>One beast with Intelligence 6 or lower makes a <Roll>WIS save</Roll> or is charmed by you for 24 hr; charmed beasts won't attack you. If harmed, the effect ends. Upcast: +1 beast per slot above 1st (simultaneously).</>],
+  ["Unseen Servant",<><RIT/>, Action, 60 ft, V/S/M</>,<>Conjure an invisible, mindless force that performs simple tasks (fetch, clean, pour, open unstuck doors) at your command, moving 15 ft/round, for 1 hr. It can't fight, has AC 10, 1 HP, and vanishes if it takes damage.</>],
+];
+const bard2 = [
+  ["Suggestion",<><C/>, Action, 30 ft, V/M</>,<>Target makes a <Roll>WIS save</Roll> or follows a reasonable-sounding course of action you describe (magically compelled, not literally controlled) for up to 8 hr or until the suggestion is fulfilled/becomes impossible. Ends early if you/allies damage the target.</>],
+  ["Heat Metal","Action then Bonus Action, 60 ft, V/S/M",<>Choose a manufactured metal object you can see; it becomes glowing hot. Any creature in physical contact takes <Roll>2d8</Roll> fire damage, and if holding/wearing it, must make a <Roll>CON save</Roll> or drop it (if it can't drop it, disadvantage on attacks/checks). On each of your subsequent turns, you can use a bonus action to deal the damage again. Upcast: +1d8 per slot above 2nd.</>],
+  ["Shatter","Action, 60 ft, V/S/M",<>20-ft-radius sphere; each creature in it makes a <Roll>CON save</Roll>, taking <Roll>3d8</Roll> thunder damage on a fail (half on success). A nonmagical object that isn't worn/carried also takes the damage. Upcast: +1d8 per slot above 2nd.</>],
+  ["Invisibility",<><C/>, Action, Touch, V/S/M</>,<>Target becomes invisible until the spell ends (up to 1 hr) or until it attacks or casts a spell. Anything the creature is wearing/carrying is invisible as long as it's on their person. Upcast: +1 target per slot above 2nd (touch simultaneously).</>],
+  ["Hold Person",<><C/>, Action, 60 ft, V/S/M</>,<>Target Humanoid makes a <Roll>WIS save</Roll> (disadvantage if it saw you cast) or is paralyzed for the duration. It repeats the save at the end of each of its turns, ending the effect on a success. Upcast: +1 target per slot above 2nd (choose targets within 30 ft of each other).</>],
+  ["Enhance Ability",<><C/>, Action, Touch, V/S/M</>,<>Grant advantage on ability checks using one chosen ability for 1 hr — e.g., Bear's Endurance also grants 2d6 temp HP, Eagle's Splendor affects CHA checks, etc. Upcast: +1 target per slot above 2nd.</>],
+  ["Blindness/Deafness","Action, 30 ft, V",<>Target makes a <Roll>CON save</Roll> or is blinded/deafened (your choice) for 1 min. It can repeat the save at the end of each of its turns, ending the effect on success. Upcast: +1 target per slot above 2nd.</>],
+  ["Calm Emotions",<><C/>, Action, 60 ft, V</>,<>20-ft-radius sphere; each creature makes a <Roll>CHA save</Roll>. On a fail, choose one: suppress any charmed/frightened effect on it for the duration, OR make it indifferent about creatures of your choice it's hostile toward (ends if it's attacked or takes damage).</>],
+  ["Detect Thoughts",<><C/>, Action, Self, V/S/M</>,<>For 1 min, probe the surface thoughts of one creature within 30 ft each turn. To probe deeper, target makes a <Roll>WIS save</Roll>; on a fail, you learn detailed reasoning/emotion or can ask it to answer a question telepathically. It knows you're probing on a successful save.</>],
+  ["See Invisibility","Action, Self, V/S/M","For 1 hr, you see invisible creatures/objects as if visible, and see into the Ethereal Plane."],
+  ["Silence",<><C/> <RIT/>, Action, 60 ft, V/S</>,<>20-ft-radius sphere becomes magically silent — no sound passes in/out; creatures/objects fully within are immune to thunder damage and deafened. Blocks casting any spell with a Verbal component.</>],
+  ["Zone of Truth","Action, 60 ft, V/S",<>15-ft-radius sphere for 10 min; a creature entering/starting there makes a <Roll>CHA save</Roll> or can't speak a deliberate lie while inside (it can still avoid answering or speak misleadingly without lying outright).</>],
+  ["Enthrall","Action, 60 ft, V/S",<>Target makes a <Roll>WIS save</Roll> (auto-success if it can't hear/understand you or is already fighting) or has disadvantage on Perception checks to notice anything other than you until the spell ends (1 min).</>],
+  ["Knock","Action, 60 ft, V",<>One lock/door/chest/manacle opens (or a stuck/barred one becomes unstuck for 1 round); creates a loud knock audible up to 300 ft.</>],
+  ["Lesser Restoration","Action, Touch, V/S",<>End one condition on the target: blinded, deafened, paralyzed, or poisoned.</>],
+  ["Locate Object",<><C/>, Action, Self, V/S/M</>,<>Sense the direction to a specific object you've seen before, or the nearest object of a general kind, within 1000 ft (blocked by lead or running water more than a few feet thick).</>],
+  ["Animal Messenger",<><RIT/>, Action, 30 ft, V/S/M</>,<>A tiny beast carries a message ≤25 words to a location/description you specify, seeking out the target for up to 24 hr (or longer with a higher slot).</>],
+  ["Magic Mouth",<><RIT/>, Action, 30 ft, V/S/M, 1 min cast</>,<>Implant a message (≤25 words) on an object/creature; it triggers under a condition you set and speaks the message audibly.</>],
+];
+const bard3 = [
+  ["Hypnotic Pattern",<><C/>, Action, 120 ft, S/M</>,<>30-ft cube of twisting colors; each creature that can see it makes a <Roll>WIS save</Roll> or becomes charmed and incapacitated (dropping whatever it's holding) for the duration. Ends for a creature if it takes damage or someone uses an action to shake it free.</>],
+  ["Fear",<><C/>, Action, Self (30-ft cone), V/S/M</>,<>Each creature in the cone makes a <Roll>WIS save</Roll> or drops whatever it's holding and must spend its turns moving away from you by the safest route, becoming frightened for the duration.</>],
+  ["Dispel Magic","Action, 120 ft, V/S",<>End one spell of 3rd level or lower on a target. For a higher-level spell, make an <Roll>ability check (spellcasting mod) vs DC 10 + spell's level</Roll> — success ends it. Upcast to auto-end a spell up to that slot's level.</>],
+  ["Stinking Cloud",<><C/>, Action, 90 ft, V/S/M</>,<>20-ft-radius sphere of nauseating gas; each creature there on its turn makes a <Roll>CON save</Roll> or wastes its action retching/reeling (unless it doesn't need to breathe or is immune to poison).</>],
+  ["Major Image",<><C/>, Action, 120 ft, V/S/M</>,<>Illusion in a 20-ft cube with sound, smell, and temperature; you can move it and change it as an action. Physical interaction reveals it (Investigation check).</>],
+  ["Bestow Curse",<><C/>, Action, Touch, V/S/M</>,<>Target makes a <Roll>WIS save</Roll> or is cursed for the duration; choose one: disadvantage on ability checks/saves of one ability, disadvantage on attack rolls vs you, must make a WIS save each turn or waste its turn, or your attacks/spells deal +<Roll>1d8</Roll> necrotic to it. Upcast @5th: also 1d8 necrotic on a failed save regardless of curse chosen, and duration can be permanent.</>],
+  ["Sending","Action, Unlimited range, V/S/M",<>Send a 25-word telepathic message to a creature you know; it can reply (25 words) in the same round if it chooses.</>],
+  ["Tongues","Action, Touch, V",<>Target understands any spoken language and is understood by any creature that knows at least one language, for 1 hr.</>],
+  ["Clairvoyance",<><C/>, Action, 1 mile, V/S/M, 10 min cast</>,<>Create an invisible sensor at a location you know/can picture; choose sight or hearing to perceive through it as if you were there.</>],
+  ["Plant Growth","Action or 8 hr, 150 ft, V/S",<>Instant: overgrow a 100-ft-radius area into difficult terrain for 1 year. OR (8 hr cast): enrich all plants in a half-mile radius for the next year (harvest yields double).</>],
+  ["Leomund's Tiny Hut",<><RIT/>, Action, Self (10-ft radius), V/S/M</>,<>Immobile dome of force shelter for 8 hr; blocks weather, sight, and most attacks from outside, but allies inside can see out. Only creatures designated by you may pass through.</>],
+  ["Speak with Dead","Action, 10 ft, V/S/M",<>Corpse's spirit is compelled to answer up to 5 questions truthfully (though it may answer cryptically if it was hostile to you) within 10 min.</>],
+  ["Speak with Plants","Action, Self (30-ft radius), V/S",<>Plants in range can understand & communicate with you, and you can ask them to perform minor favors (open a path, hide something) for 10 min.</>],
+  ["Glyph of Warding","Action, Touch, V/S/M, 1 hr cast",<>Store a spell (≤3rd level) or an explosive rune (up to 5d8 damage, save for half) into a glyph on a surface/object; it triggers when your specified condition is met.</>],
+  ["Nondetection","Action, Touch, V/S/M",<>Target is hidden from divination magic (scrying, detection spells) for 8 hr.</>],
+];
+const bard4 = [
+  ["Dimension Door","Action, 500 ft, V",<>Teleport yourself (and one willing creature within 5 ft, if any) to a point you can visualize within range. If the space is occupied, both take <Roll>4d6</Roll> force damage and are shunted to the nearest open space.</>],
+  ["Polymorph",<><C/>, Action, 60 ft, V/S/M</>,<>Unwilling target makes a <Roll>WIS save</Roll> or transforms into a beast (CR ≤ its own level/CR) for the duration; its game stats are replaced but mental stats/personality remain. It reverts if reduced to 0 HP in beast form or the spell ends. Willing creatures transform without a save.</>],
+  ["Greater Invisibility",<><C/>, Action, Touch, V/S</>,<>Target is invisible for 1 min — even while attacking or casting.</>],
+  ["Confusion",<><C/>, Action, 90 ft, V/S/M</>,<>10-ft-radius sphere; each creature there makes a <Roll>WIS save</Roll> or is confused for the duration (roll d10 each turn: 1-2 wander randomly, 3-4 no action, 5-8 normal, 9-10 attack nearest creature). Re-save each turn to end early. Upcast: +5 ft radius per slot above 4th.</>],
+  ["Compulsion",<><C/>, Action, 30 ft, V/S</>,<>WIS save or, on subsequent turns, must use its movement to move in a direction you choose (provoking opportunity attacks if it moves away from a threat).</>],
+  ["Freedom of Movement","Action, Touch, V/S/M",<>Target ignores difficult terrain, and effects that would restrain it or reduce its speed cause no effect (magical restraint/paralysis can still be escaped via a normal action) — for 1 hr.</>],
+  ["Hallucinatory Terrain","Action, 300 ft, V/S/M, 10 min cast",<>Disguise a 150-ft-cube area of terrain (a hill looks like a plain, etc.) for 24 hr; interaction can reveal it (Investigation check).</>],
+  ["Locate Creature",<><C/>, Action, Self, V/S/M</>,<>Sense the direction to a specific creature you know or a type of creature within 1000 ft (blocked by running water/lead).</>],
+];
+
+/* ============================================================
+   CLERIC (Life) spell lists — full text
+============================================================ */
+const clrCant = [
+  ["Sacred Flame","Action, 60 ft, V/S",<>Target makes a <Roll>DEX save</Roll> (gains no benefit from half or three-quarters cover on this save) or takes <Roll>1d8</Roll> radiant damage. Becomes <Roll>2d8</Roll> at 5th level, 3d8 at 11th, 4d8 at 17th.</>],
+  ["Toll the Dead","Action, 60 ft, V/S — XGtE",<>Target makes a <Roll>WIS save</Roll> or takes <Roll>1d8</Roll> necrotic (<Roll>1d12</Roll> instead if it's missing any HP). Scales to 2 dice @5th, 3 @11th, 4 @17th.</>],
+  ["Word of Radiance","Action, Self (5-ft radius), V/M — XGtE",<>Each hostile creature within 5 ft makes a <Roll>CON save</Roll> or takes <Roll>1d6</Roll> radiant damage. Scales to 2d6 @5th, 3d6 @11th, 4d6 @17th.</>],
+  ["Guidance",<><C/>, Action, Touch, V/S</>,<>Before the spell ends (1 min), target can add <Roll>1d4</Roll> to one ability check of its choice.</>],
+  ["Resistance",<><C/>, Action, Touch, V/S/M</>,<>Before the spell ends (1 min), target can add <Roll>1d4</Roll> to one saving throw of its choice.</>],
+  ["Spare the Dying","Action, Touch, V/S",<>A creature at 0 HP you touch becomes stable (still unconscious, no more death saves needed unless damaged again).</>],
+  ["Light","Action, Touch, V/M",<>Object sheds 20-ft bright/20-ft dim light for 1 hr; casting on a worn/held object hostile creature grants it a DEX save to negate.</>],
+  ["Mending","Action, Touch, V/S/M, 1 min cast","Repairs a single break or tear in an object."],
+  ["Thaumaturgy","Action, 30 ft, V",<>Choose one minor divine effect for 1 min (booming voice, flickering flames, tremor, unlocked door creak, eyes glimmer, spectral sound) — no damage, purely flavor/utility.</>],
+];
+const clr1 = [
+  ["Cure Wounds","Domain, Always Prepared. Action, Touch, V/S",<>Target regains <Roll>1d8 + WIS mod</Roll> HP, +Disciple of Life bonus (<Roll>+2 + slot level</Roll> since it's a healing spell of 1st level+). Upcast: +1d8 per slot above 1st.</>],
+  ["Bless",<>Domain, Always Prepared. <C/>, Action, 30 ft, V/S/M</>,<>Up to 3 creatures add <Roll>1d4</Roll> to every attack roll and saving throw for the duration (1 min). Upcast: +1 target per slot above 1st.</>],
+  ["Healing Word","Bonus Action, 60 ft, V",<>Target regains <Roll>1d4 + WIS mod</Roll> HP + Disciple of Life bonus. Upcast: +1d4 per slot above 1st.</>],
+  ["Guiding Bolt","Action, 120 ft, V/S",<>Ranged spell attack: on a hit, <Roll>4d6</Roll> radiant damage, and the next attack roll made against the target before the end of your next turn has advantage. Upcast: +1d6 per slot above 1st.</>],
+  ["Inflict Wounds","Action, Touch, V/S",<>Melee spell attack: on a hit, <Roll>3d10</Roll> necrotic damage. Upcast: +1d10 per slot above 1st.</>],
+  ["Command","Action, 60 ft, V",<>Target makes a <Roll>WIS save</Roll> or obeys a single-word command on its next turn: Approach, Drop, Flee, Grovel, or Halt (specific mechanical effects for each; creature takes no action if the command is nonsensical). Upcast: +1 target per slot above 1st.</>],
+  ["Bane",<><C/>, Action, 30 ft, V/S/M</>,<>3 creatures make a <Roll>CHA save</Roll> or subtract <Roll>1d4</Roll> from attack rolls & saves for the duration. Upcast: +1 target per slot above 1st.</>],
+  ["Shield of Faith",<>Bonus Action, <C/>, 60 ft, V/S/M</>,<>Target gets <Roll>+2 AC</Roll> for the duration (10 min).</>],
+  ["Sanctuary","Bonus Action, 30 ft, V/S/M",<>Warded creature: any creature attacking it must first make a <Roll>WIS save</Roll> or choose a new target/action; the ward ends if the warded creature attacks or casts a spell that affects an enemy.</>],
+  ["Detect Magic",<><C/> <RIT/>, Action, Self, V/S</>,<>10 min, sense magic within 30 ft; use action to see aura &amp; school.</>],
+  ["Detect Evil and Good",<><C/>, Action, Self, V/S</>,<>10 min; sense the presence and location of aberrations, celestials, elementals, fey, fiends, or undead within 30 ft, and whether an object/place is consecrated/desecrated.</>],
+  ["Protection from Evil and Good",<><C/>, Action, Touch, V/S/M</>,<>Target is warded against aberrations/celestials/elementals/fey/fiends/undead: those creature types have disadvantage on attack rolls against the target, and the target can't be charmed/frightened/possessed by them.</>],
+  ["Purify Food and Drink",<><RIT/>, Action, 10 ft, V/S</>,<>All nonmagical food & drink in a 5-ft-radius sphere is purified of poison and disease.</>],
+];
+const clr2 = [
+  ["Spiritual Weapon","Domain, Always Prepared. Bonus Action, 60 ft, V/S",<>Spectral weapon appears and makes a melee spell attack against a target within 5 ft: on hit, <Roll>1d8 + WIS mod</Roll> force damage. On subsequent turns, use a bonus action to move it 20 ft and attack again. Upcast: +1d8 per two slot levels above 2nd.</>],
+  ["Lesser Restoration","Domain, Always Prepared. Action, Touch, V/S",<>End one of: blinded, deafened, paralyzed, or poisoned on the target.</>],
+  ["Prayer of Healing","Action, 30 ft, V, 10 min cast",<>Up to 6 creatures each regain <Roll>2d8 + WIS mod</Roll> HP + Disciple bonus each. Upcast: +1d8 per slot above 2nd.</>],
+  ["Aid","Action, 30 ft, V/S/M",<>Up to 3 creatures gain +5 to current & max HP for 8 hr. Upcast: +5 per slot above 2nd.</>],
+  ["Hold Person",<><C/>, Action, 60 ft, V/S/M</>,<>Humanoid target makes a <Roll>WIS save</Roll> or is paralyzed for the duration, repeating the save each turn.</>],
+  ["Silence",<><C/> <RIT/>, Action, 60 ft, V/S</>,<>20-ft radius of magical silence; blocks Verbal-component spellcasting inside.</>],
+  ["Blindness/Deafness","Action, 30 ft, V",<>CON save or blinded/deafened 1 min; re-save each turn.</>],
+  ["Calm Emotions",<><C/>, Action, 60 ft, V</>,<>CHA save or suppress charm/fear, or make hostile creatures indifferent, in a 20-ft radius.</>],
+  ["Enhance Ability",<><C/>, Action, Touch, V/S/M</>,<>Advantage on checks with one chosen ability for 1 hr (some options grant secondary benefits like temp HP or +10 ft speed).</>],
+  ["Warding Bond","Action, Touch, V/S/M",<>Target gets +1 AC & saves and resistance to all damage while within 60 ft of you; you take the same damage it takes (shared, not doubled). Ends if either of you drops to 0 HP or you're more than 60 ft apart for 1 hr.</>],
+  ["Zone of Truth","Action, 60 ft, V/S",<>15-ft-radius sphere for 10 min; entering/starting creature makes a CHA save or can't speak a deliberate lie while inside.</>],
+  ["Gentle Repose",<><RIT/>, Action, Touch, V/S/M</>,<>A corpse doesn't decay and can't become undead for 10 days; extends the window to cast Raise Dead on it.</>],
+  ["Augury",<><RIT/>, Action, Self, V/S/M</>,<>Divine an omen (Weal, Woe, Weal and Woe, or Nothing) about a course of action you're about to take within 30 min.</>],
+  ["Find Traps","Action, 120 ft, V/S",<>Sense the presence of any trap within range that you have line of sight to (doesn't reveal location precisely, nor disarm it).</>],
+  ["Continual Flame","Action, Touch, V/S/M, GP cost",<>Object produces heatless flame (like a torch) permanently until dispelled.</>],
+];
+const clr3 = [
+  ["Spirit Guardians",<><C/>, Action, Self (15-ft radius), V/S/M</>,<>Spirits move with you for the duration; each enemy that enters/starts in the aura makes a <Roll>WIS save</Roll> or takes <Roll>3d8</Roll> radiant (good) or necrotic (evil) damage (your choice at casting) and has its speed halved in the aura; half damage on a success and no speed reduction. Upcast: +1d8 per slot above 3rd.</>],
+  ["Revivify","Domain, Always Prepared. Action, Touch, V/S/M (300 gp diamond, consumed)",<>Creature that died within the last minute returns to life with 1 HP (doesn't restore missing body parts, or fix the cause of death like poison still in system).</>],
+  ["Beacon of Hope",<>Domain, Always Prepared. <C/>, Action, 30 ft, V/S</>,<>Chosen creatures have advantage on WIS saves and death saving throws, and regain the maximum possible HP from any healing they receive, for the duration.</>],
+  ["Mass Healing Word","Bonus Action, 60 ft, V",<>Up to 6 creatures you choose each regain <Roll>1d4 + WIS mod</Roll> HP + Disciple bonus. Upcast: +1d4 per slot above 3rd.</>],
+  ["Dispel Magic","Action, 120 ft, V/S",<>End one spell ≤3rd level on the target automatically; for higher, <Roll>ability check vs DC 10 + spell level</Roll>.</>],
+  ["Bestow Curse",<><C/>, Action, Touch, V/S/M</>,<>WIS save or cursed for the duration (choose: disadvantage on ability checks/saves of one ability, disadvantage on attacks vs you, WIS save each turn or lose its turn, or your attacks deal +1d8 necrotic to it).</>],
+  ["Remove Curse","Action, Touch, V/S",<>Ends all curses on a creature, or if on an object, breaks its curse (but the item's other magic remains).</>],
+  ["Protection from Energy",<><C/>, Action, Touch, V/S</>,<>Target has resistance to one damage type (acid, cold, fire, lightning, or thunder) for 1 hr.</>],
+  ["Daylight","Action, 60 ft, V/S",<>60-ft-radius bright light sphere (120 ft dim) for 1 hr; can counter/dispel magical darkness of equal or lower level.</>],
+  ["Sending","Action, Unlimited, V/S/M",<>25-word telepathic message to a known creature anywhere; it can reply in the same round.</>],
+  ["Speak with Dead","Action, 10 ft, V/S/M",<>Corpse answers up to 5 questions within 10 min (may be evasive/cryptic if hostile in life).</>],
+  ["Animate Dead","Action, Touch, V/S/M",<>Target a corpse; it becomes a skeleton or zombie under your control (you can control up to 4 total from repeated castings). Must reissue commands each day or it acts on its own aggressively toward creatures nearby.</>],
+  ["Clairvoyance",<><C/>, Action, 1 mile, V/S/M, 10 min cast</>,<>Invisible sensor lets you see or hear (your choice) at a known/picturable location.</>],
+  ["Create Food and Water","Action, 30 ft, V/S","Creates 45 lb of food and 30 gal water, enough for 15 humanoids or 5 steeds for 1 day."],
+  ["Magic Circle","Action, Touch, V/S/M, GP cost, 1 min cast",<>10-ft-radius, 20-ft-tall cylinder wards against a chosen creature type — they can't enter voluntarily nor charm/frighten/possess through it (or trap one already inside).</>],
+  ["Glyph of Warding","Action, Touch, V/S/M, 1 hr cast",<>Stored spell (≤3rd level, or explosive rune 5d8) triggers on your specified condition.</>],
+  ["Tongues","Action, Touch, V","1 hr; target understands & is understood in any language."],
+  ["Water Walk",<><RIT/>, Action, Touch, V/S/M</>,<>Up to 10 creatures can stand on and move across any liquid surface as if it were solid ground, for 1 hr.</>],
+];
+const clr4 = [
+  ["Death Ward","Domain, Always Prepared. Action, Touch, V/S",<>The first time the target would drop to 0 HP while this is active, it instead drops to 1 HP (or negates an instant-death effect once). Then the spell ends.</>],
+  ["Guardian of Faith","Domain, Always Prepared. Action, 30 ft, V",<>Large spectral guardian appears for 8 hr or until it deals 60 total damage; any enemy that moves within 10 ft of it for the first time on a turn makes a <Roll>DEX save</Roll> or takes <Roll>20 radiant</Roll> damage (half on success).</>],
+  ["Banishment",<><C/>, Action, 60 ft, V/S/M</>,<>Target makes a <Roll>CHA save</Roll> or is banished to a harmless demiplane (if native to another plane, potentially permanently) for the duration. Upcast: +1 target per slot above 4th.</>],
+  ["Freedom of Movement","Action, Touch, V/S/M",<>1 hr; target ignores difficult terrain, and magical effects can't reduce its speed or cause it to be paralyzed/restrained (it can spend 5 ft of movement to automatically escape a nonmagical grapple).</>],
+  ["Control Water",<><C/>, Action, 300 ft, V/S/M</>,<>Choose one effect for a body of water in a 100-ft cube: flood, part (create a 30-ft trench), redirect flow, or create a whirlpool (STR save or pulled and battered).</>],
+  ["Divination",<><RIT/>, Action, Self, V/S/M, GP cost</>,<>Contact a divine power for a truthful answer about a specific goal, event, or activity within 7 days.</>],
+  ["Locate Creature",<><C/>, Action, Self, V/S/M</>,<>Sense the direction toward a known creature or the nearest of a specific kind within 1000 ft (blocked by running water/lead).</>],
+  ["Stone Shape","Action, Touch, V/S/M",<>Reshape a Medium-sized (5-ft) portion of stone into any form (a wall into a door, a boulder into a statue, etc.).</>],
+];
+
+/* ============================================================
+   DRUID (Moon) spell lists — full text
+============================================================ */
+const druCant = [
+  ["Produce Flame","Action, Self/30 ft, V/S",<>Flame in your hand sheds light (no attack) and lasts 10 min, or hurl it: spell attack, on hit <Roll>1d8</Roll> fire damage (2d8 @5th, 3d8 @11th, 4d8 @17th), then the spell ends.</>],
+  ["Shillelagh","Bonus Action, Touch, V/S/M",<>Your club or quarterstaff becomes magical for 1 min; use WIS instead of STR for its attack & damage rolls, and its damage die becomes <Roll>1d8</Roll> regardless of one/two-handed use.</>],
+  ["Thorn Whip","Action, 30 ft, V/S/M",<>Spell attack: on hit, <Roll>1d6</Roll> piercing damage (2d6 @5th, 3d6 @11th, 4d6 @17th) and pull a Large-or-smaller creature up to 10 ft closer to you.</>],
+  ["Poison Spray","Action, 10 ft, V/S",<>CON save or <Roll>1d12</Roll> poison damage (no effect on success). Scales to 2d12 @5th, 3d12 @11th, 4d12 @17th.</>],
+  ["Guidance",<><C/>, Action, Touch, V/S</>,<>Target adds <Roll>1d4</Roll> to one ability check before the spell ends (1 min).</>],
+  ["Resistance",<><C/>, Action, Touch, V/S/M</>,<>Target adds <Roll>1d4</Roll> to one saving throw before the spell ends.</>],
+  ["Druidcraft","Action, 30 ft, V/S",<>Minor nature effect: predict weather for next 24 hr, make a flower bloom, create a harmless sensory effect, or instantly snuff a small flame.</>],
+  ["Mending","Action, Touch, V/S/M, 1 min cast","Repair a single break/tear in an object."],
+];
+const dru1 = [
+  ["Cure Wounds","Action, Touch, V/S",<>Target regains <Roll>1d8 + WIS mod</Roll> HP. Upcast: +1d8 per slot above 1st.</>],
+  ["Healing Word","Bonus Action, 60 ft, V",<>Target regains <Roll>1d4 + WIS mod</Roll> HP. Upcast: +1d4 per slot above 1st.</>],
+  ["Faerie Fire",<><C/>, Action, 60 ft, V</>,<>20-ft cube; each creature in it makes a <Roll>DEX save</Roll> or is outlined in light (visible even if invisible) for the duration; attacks against outlined creatures have advantage, and they can't benefit from being invisible.</>],
+  ["Entangle",<><C/>, Action, 90 ft, V/S</>,<>Grasping weeds/vines fill a 20-ft square; each creature there makes a <Roll>STR save</Roll> or is restrained (repeats save each turn to escape); difficult terrain for all.</>],
+  ["Thunderwave",<><C/>—instant, Action, Self (15-ft cube), V/S</>,<>CON save, <Roll>2d8</Roll> thunder + pushed 10 ft; half & no push on success. Upcast: +1d8 per slot above 1st.</>],
+  ["Fog Cloud",<><C/>, Action, 120 ft, V/S</>,<>20-ft-radius heavily obscured fog sphere for 1 hr (dispersed early by strong wind). Upcast: +20 ft radius per slot above 1st.</>],
+  ["Goodberry","Action, Touch, V/S/M",<>Creates 10 berries; each restores <Roll>1</Roll> HP when eaten (max 10/day) and provides a full day's nourishment. Spoil after 24 hr.</>],
+  ["Jump","Action, Touch, V/S/M",<>Target's jump distance triples for 1 min.</>],
+  ["Longstrider","Action, Touch, V/S/M",<>+10 ft speed for 1 hr.</>],
+  ["Speak with Animals",<><RIT/>, Action, Self, V/S</>,<>10 min; converse with beasts (limited by their intelligence).</>],
+  ["Charm Person","Action, 30 ft, V/S",<>WIS save (advantage if fighting it) or charmed for 1 hr.</>],
+  ["Animal Friendship","Action, 30 ft, V/S/M",<>Beast makes a WIS save or is charmed for 24 hr; won't attack you unless harmed first.</>],
+  ["Detect Magic",<><C/> <RIT/>, Action, Self, V/S</>,<>10 min; sense magic within 30 ft.</>],
+  ["Detect Poison and Disease",<><C/> <RIT/>, Action, Self, V/S/M</>,<>10 min; sense presence &amp; location of poison, poisonous creatures, and disease within 30 ft.</>],
+  ["Create or Destroy Water","Action, 30 ft, V/S/M",<>Create up to 10 gallons of clean water, or destroy up to 10 gallons in one container/area.</>],
+  ["Purify Food and Drink",<><RIT/>, Action, 10 ft, V/S</>,<>Purify all nonmagical food & water in a 5-ft sphere.</>],
+];
+const dru2 = [
+  ["Moonbeam",<><C/>, Action, 120 ft, V/S/M</>,<>5-ft-radius, 40-ft-tall cylinder of light; a creature there (or entering) makes a <Roll>CON save</Roll> or takes <Roll>2d10</Roll> radiant damage (half on success; shapechangers have disadvantage and revert to their true form if they fail). As a bonus action on later turns, move the beam up to 60 ft. Upcast: +1d10 per slot above 2nd.</>],
+  ["Flaming Sphere",<><C/>, Action, 60 ft, V/S/M</>,<>5-ft-diameter fiery sphere; creatures within 5 ft make a <Roll>DEX save</Roll> or take <Roll>2d6</Roll> fire (half on success). As a bonus action, roll it up to 30 ft/turn (can charge into a creature for the same save/damage). Upcast: +1d6 per slot above 2nd.</>],
+  ["Heat Metal","Action then Bonus Action, 60 ft, V/S/M",<>Metal object glows; contact deals <Roll>2d8</Roll> fire and holder makes a <Roll>CON save</Roll> or drops it; bonus action on later turns repeats the damage. Upcast: +1d8 per slot above 2nd.</>],
+  ["Flame Blade",<>Bonus Action, <C/>, Self, V/S/M</>,<>Fiery blade in hand (sheds light, no fuel needed); melee spell attack deals <Roll>3d6</Roll> fire damage. Upcast: +1d6 per two slot levels above 2nd.</>],
+  ["Spike Growth",<><C/>, Action, 150 ft, V/S/M</>,<>20-ft-radius area becomes difficult terrain hidden with camouflaged spikes; a creature moving through takes <Roll>2d4</Roll> piercing per 5 ft traveled.</>],
+  ["Lesser Restoration","Action, Touch, V/S",<>End blinded, deafened, paralyzed, or poisoned on the target.</>],
+  ["Pass without Trace",<><C/>, Action, Self (30-ft radius), V/S/M</>,<>Allies in the radius get +10 to Stealth checks and can't be tracked except by magical means, for 1 hr.</>],
+  ["Barkskin",<><C/>, Action, Touch, V/S/M</>,<>Target's AC can't be lower than 16, regardless of armor worn, for 1 hr.</>],
+  ["Hold Person",<><C/>, Action, 60 ft, V/S/M</>,<>Humanoid target WIS save or paralyzed for the duration, re-saving each turn.</>],
+  ["Gust of Wind",<><C/>, Action, Self (60-ft line), V/S/M</>,<>Creatures in the line make a <Roll>STR save</Roll> or are pushed 15 ft away; also disperses gas/vapor and extinguishes small flames. Can be used to disadvantage ranged attacks against you.</>],
+  ["Enhance Ability",<><C/>, Action, Touch, V/S/M</>,<>Advantage on checks with a chosen ability for 1 hr (secondary effects per ability chosen).</>],
+  ["Darkvision","Action, Touch, V/S/M",<>Target gains 60-ft darkvision for 8 hr.</>],
+  ["Animal Messenger",<><RIT/>, Action, 30 ft, V/S/M</>,<>Small beast delivers a ≤25-word message to a described recipient.</>],
+  ["Locate Animals or Plants",<><RIT/>, Action, Self, V/S/M</>,<>Sense the direction to the nearest beast or plant of a specific kind within 5 miles.</>],
+  ["Protection from Poison","Action, Touch, V/S",<>Neutralize one poison affecting the target (or grant advantage on poison saves & resistance to poison damage for 1 hr).</>],
+];
+const dru3 = [
+  ["Call Lightning",<><C/>, Action, 120 ft, V/S</>,<>Storm cloud forms overhead; as an action each turn, call a bolt down on a point within 5 ft of the cloud — creature there makes a <Roll>DEX save</Roll> or takes <Roll>3d10</Roll> lightning (half on success). Damage increases by 1d10 if you're outdoors in a storm. Upcast: +1d10 per slot above 3rd.</>],
+  ["Conjure Animals","Action, 60 ft, V/S",<>Summon spirits as beasts to fight for you: 1 beast of CR 2 or lower, 2 of CR 1, 4 of CR ½, or 8 of CR ¼; they act on your turn (you use a bonus action to direct them) and disappear after 1 hr or at 0 HP. Upcast: double the number of beasts per slot level above 3rd (or two levels for a proportionally stronger single beast — DM ruling).</>],
+  ["Sleet Storm",<><C/>, Action, 150 ft, V/S/M</>,<>20-ft-radius, 40-ft-tall cylinder for 1 min: heavily obscured, difficult terrain (ice), and a creature moving/starting there makes a <Roll>DEX save</Roll> or falls prone; open flames are doused; concentration checks in the area are made at disadvantage.</>],
+  ["Dispel Magic","Action, 120 ft, V/S",<>End a spell ≤3rd auto; higher <Roll>ability check vs DC 10+spell lvl</Roll>.</>],
+  ["Plant Growth","Action or 8 hr, 150 ft, V/S",<>Instant: 100-ft-radius difficult terrain (permanent). 8-hr cast: enrich plants in ½-mile radius for a year.</>],
+  ["Wind Wall",<><C/>, Action, 120 ft, V/S/M</>,<>50-ft-long, 15-ft-tall wall of strong wind; ranged weapon attacks through it have disadvantage, and creatures passing through make a <Roll>STR save</Roll> or take <Roll>3d8</Roll> bludgeoning (half on success); gas/fog/small flying creatures can't pass.</>],
+  ["Protection from Energy",<><C/>, Action, Touch, V/S</>,<>Resistance to one chosen damage type (acid/cold/fire/lightning/thunder) for 1 hr.</>],
+  ["Daylight","Action, 60 ft, V/S",<>60-ft bright/120-ft dim light sphere, 1 hr; counters magical darkness of equal/lower level.</>],
+  ["Water Breathing",<><RIT/>, Action, 30 ft, V/S/M</>,<>Up to 10 willing creatures can breathe underwater for 24 hr.</>],
+  ["Water Walk",<><RIT/>, Action, 30 ft, V/S/M</>,<>Up to 10 creatures walk on liquid surfaces for 1 hr.</>],
+  ["Meld into Stone",<><RIT/>, Action, Touch, V/S</>,<>Step into and merge with a stone object/surface for 8 hr; you can see/hear a short distance out but can't act on the outside world.</>],
+  ["Speak with Plants","Action, Self (30-ft radius), V/S",<>Plants understand & communicate; ask them minor favors (part to form a path, hide something, entangle a creature) for 10 min.</>],
+];
+const dru4 = [
+  ["Polymorph",<><C/>, Action, 60 ft, V/S/M</>,<>Unwilling target: <Roll>WIS save</Roll> or transforms into a beast (CR ≤ its level/CR) for the duration; reverts if it drops to 0 HP in beast form. Willing creatures transform automatically, no save.</>],
+  ["Ice Storm","Action, 300 ft, V/S/M",<>20-ft-radius, 40-ft-tall cylinder; each creature makes a <Roll>DEX save</Roll>, taking <Roll>2d8</Roll> bludgeoning + <Roll>4d6</Roll> cold on a fail (half on success); ground becomes difficult terrain. Upcast: +1d8 bludgeoning per slot above 4th.</>],
+  ["Wall of Fire",<><C/>, Action, 120 ft, V/S/M</>,<>Create a wall (up to 60 ft long/20 ft tall/1 ft thick, or a ringed version) of fire; a creature entering or starting adjacent makes a <Roll>DEX save</Roll>, taking <Roll>5d8</Roll> fire on a fail (half on success). Upcast: +1d8 per slot above 4th.</>],
+  ["Confusion",<><C/>, Action, 90 ft, V/S/M</>,<>10-ft-radius; WIS save or confused (roll d10 each turn for random behavior) for the duration.</>],
+  ["Conjure Woodland Beings","Action, 60 ft, V/S/M",<>Summon fey spirits as beasts of the forest to fight for you (same CR-tier math as Conjure Animals).</>],
+  ["Conjure Minor Elementals","Action, 90 ft, V/S",<>Summon elementals to fight for you (same CR-tier math: 1×CR2, 2×CR1, 4×CR½, 8×CR¼).</>],
+  ["Dominate Beast",<><C/>, Action, 60 ft, V/S</>,<>Beast makes a <Roll>WIS save</Roll> or is charmed; you can telepathically command it (or seize direct control on your turn) for the duration. It repeats the save whenever it takes damage.</>],
+  ["Freedom of Movement","Action, Touch, V/S/M",<>1 hr; ignore difficult terrain and magical speed-reduction/restraint effects.</>],
+  ["Stoneskin",<><C/>, Action, Touch, V/S/M</>,<>Target has resistance to nonmagical bludgeoning, piercing, and slashing damage for 1 hr.</>],
+  ["Blight","Action, 30 ft, V/S",<>Target makes a <Roll>CON save</Roll>, taking <Roll>8d8</Roll> necrotic on a fail (half on success); plant creatures have disadvantage on the save and may take max damage. Upcast: +1d8 per slot above 4th.</>],
+  ["Giant Insect",<><C/>, Action, 30 ft, V/S</>,<>Transform up to 10 centipedes / 5 spiders / 3 wasps / 1 scorpion into Giant versions that obey your commands for the duration.</>],
+  ["Control Water",<><C/>, Action, 300 ft, V/S/M</>,<>Flood, part, redirect, or whirlpool a body of water in a 100-ft cube.</>],
+  ["Locate Creature",<><C/>, Action, Self, V/S/M</>,<>Sense direction to a known creature within 1000 ft.</>],
+  ["Stone Shape","Action, Touch, V/S/M",<>Reshape a 5-ft portion of stone into any form.</>],
+  ["Hallucinatory Terrain","Action, 300 ft, V/S/M, 10 min cast",<>Disguise a 150-ft-cube of terrain for 24 hr.</>],
+];
+
+/* ============================================================
+   WIZARD (School of Evocation) spell lists — full candidate lists
+============================================================ */
+const wizCant = [
+  ["Fire Bolt","Action, 120 ft, V/S",<>Spell attack: <Roll>1d10</Roll> fire damage on a hit (ignites unattended flammable objects). Scales <Roll>2d10</Roll> @5th, 3d10 @11th, 4d10 @17th. Your signature Evocation damage cantrip.</>],
+  ["Ray of Frost","Action, 60 ft, V/S",<>Spell attack: <Roll>1d8</Roll> cold damage and target's speed is reduced by 10 ft until the start of your next turn. Scales 2d8 @5th, 3d8 @11th, 4d8 @17th.</>],
+  ["Shocking Grasp","Action, Touch, V/S",<>Melee spell attack (advantage if target is wearing metal armor): <Roll>1d8</Roll> lightning damage, and the target can't take reactions until the start of its next turn. Scales 2d8 @5th, 3d8 @11th, 4d8 @17th.</>],
+  ["Acid Splash","Action, 60 ft, V/S",<>Choose one or two creatures within 5 ft of each other; each makes a <Roll>DEX save</Roll> or takes <Roll>1d6</Roll> acid damage. Scales 2d6 @5th, 3d6 @11th, 4d6 @17th.</>],
+  ["Chill Touch","Action, 120 ft, V/S",<>Spell attack: <Roll>1d8</Roll> necrotic damage, and the target can't regain HP until the start of your next turn. If it's undead, it also has disadvantage on attack rolls against you for 1 round. Scales 2d8 @5th, 3d8 @11th, 4d8 @17th.</>],
+  ["Poison Spray","Action, 10 ft, V/S",<>CON save or <Roll>1d12</Roll> poison damage (no effect on success). Scales 2d12 @5th, 3d12 @11th, 4d12 @17th.</>],
+  ["Mage Hand","Action, 30 ft, V/S",<>Spectral hand manipulates objects, opens unlocked things, stows/retrieves items, carries ≤10 lb, for 1 min.</>],
+  ["Minor Illusion","Action, 30 ft, S/M",<>One 5-ft-cube sound OR image for 1 min; Investigation check vs your DC to disbelieve on physical interaction.</>],
+  ["Prestidigitation","Action, 10 ft, V/S",<>Minor magic trick — light a candle, clean/soil an object, flavor food, harmless sensory effect, or a tiny 1-hr trinket.</>],
+  ["Light","Action, Touch, V/M",<>Object sheds 20-ft bright/20-ft dim light for 1 hr; DEX save to negate if cast on a worn/held object of an unwilling creature.</>],
+  ["Dancing Lights",<><C/>, Action, 120 ft, V/S/M</>,<>Up to 4 torch-sized lights you move up to 60 ft/round as a bonus action, or combine into one dim humanoid shape.</>],
+  ["Mending","Action, Touch, V/S/M, 1 min cast","Repairs a single break or tear in an object."],
+  ["Message","Action, 120 ft, V/S/M",<>Whisper a message to one creature; it hears it and can whisper a reply only you hear, for 1 round.</>],
+  ["True Strike",<><C/>, Action, 30 ft, S</>,<>Gain advantage on your very next attack roll against the target before the end of your next turn.</>],
+];
+const wiz1 = [
+  ["Magic Missile","Action, 120 ft, V/S",<>Three darts, each automatically hitting (no attack roll) for <Roll>1d4+1</Roll> force damage; you can split them among targets. Upcast: +1 dart per slot above 1st.</>],
+  ["Shield",<><span className="pill">Reaction</span>, Self, V/S</>,<>Trigger: hit by an attack or targeted by Magic Missile. Gain <Roll>+5 AC</Roll> until the start of your next turn (retroactively can turn a hit into a miss), and immunity to Magic Missile for the duration.</>],
+  ["Burning Hands","Action, Self (15-ft cone), V/S",<>DEX save, <Roll>3d6</Roll> fire damage (half on success), ignites flammable objects not worn/carried. Upcast: +1d6 per slot above 1st.</>],
+  ["Mage Armor","Action, Touch, V/S/M",<>Unarmored target's AC becomes <Roll>13 + DEX mod</Roll> for 8 hr (doesn't stack with actual armor).</>],
+  ["Sleep","Action, 90 ft, V/S/M",<>Roll <Roll>5d8</Roll>; that many total HP of creatures (lowest current HP first) fall unconscious. No effect on undead or creatures immune to charm. Upcast: +2d8 per slot above 1st.</>],
+  ["Charm Person","Action, 30 ft, V/S",<>WIS save (advantage if fighting you/allies) or charmed for 1 hr.</>],
+  ["Color Spray","Action, Self (15-ft cone), V/S/M",<>Roll <Roll>6d10</Roll>; that many total HP of creatures in the cone (lowest HP first) are blinded until end of your next turn. Upcast: +2d10 per slot above 1st.</>],
+  ["Grease","Action, 60 ft, V/S/M",<>10-ft square becomes difficult terrain; creatures there make a <Roll>DEX save</Roll> or fall prone.</>],
+  ["Find Familiar",<><RIT/>, Action, 10 ft, V/S/M, 1 hr cast</>,<>Summon a spirit as a familiar (bat, cat, owl, etc.); it can scout, deliver touch spells for you, and you can see/hear through its senses.</>],
+  ["Feather Fall",<><span className="pill">Reaction</span>, 60 ft, V/M</>,<>Up to 5 falling creatures slow to 60 ft/round fall speed and take no fall damage if they land before the spell ends.</>],
+  ["Alarm",<><RIT/>, Action, 30 ft, V/S/M</>,<>Ward a 20-ft cube for 8 hr; alerts you (mentally if within 1 mile, audibly if not) when a creature you didn't exclude enters it.</>],
+  ["Comprehend Languages",<><RIT/>, Action, Self, V/S/M</>,<>Understand the literal meaning of any language you hear or touch-read, for 1 hr.</>],
+  ["Detect Magic",<><C/> <RIT/>, Action, Self, V/S</>,<>Sense magic within 30 ft for 10 min; use your action to see auras and schools.</>],
+  ["Disguise Self","Action, Self, V/S",<>Change your appearance for 1 hr; Investigation check vs your DC to see through it.</>],
+  ["Expeditious Retreat",<><C/>, Bonus Action, Self, V/S</>,<>Dash as a bonus action each turn for the duration.</>],
+  ["False Life","Action, Self, V/S/M",<>Gain <Roll>1d4+4</Roll> temp HP for 1 hr. Upcast: +5 temp HP per slot above 1st.</>],
+  ["Floating Disk","Action, 20 ft, V/S/M",<>Force disk carries up to 500 lb, follows you within 20 ft, 1 hr.</>],
+  ["Fog Cloud",<><C/>, Action, 120 ft, V/S</>,<>20-ft-radius heavily obscured fog sphere for 1 hr. Upcast: +20 ft radius per slot above 1st.</>],
+  ["Hideous Laughter",<><C/>, Action, 30 ft, V/S/M</>,<>WIS save or prone, incapacitated, unable to stand for the duration; re-save when it takes damage or each turn's end.</>],
+  ["Identify",<><RIT/>, Action, Touch, V/S/M</>,<>Learn a magic item's properties or the spell affecting a creature/object.</>],
+  ["Illusory Script","Action, Touch, V/S/M, 1 min cast",<>Write a message only you and creatures you designate can read normally; others see gibberish or a false message.</>],
+  ["Jump","Action, Touch, V/S/M",<>Target's jump distance triples for 1 min.</>],
+  ["Longstrider","Action, Touch, V/S/M",<>+10 ft speed for 1 hr.</>],
+  ["Protection from Evil and Good",<><C/>, Action, Touch, V/S/M</>,<>Ward vs aberrations/celestials/elementals/fey/fiends/undead: disadvantage on their attacks vs target, target can't be charmed/frightened/possessed by them.</>],
+  ["Silent Image",<><C/>, Action, 60 ft, V/S/M</>,<>15-ft-cube purely visual illusion you can move within range as an action.</>],
+  ["Thunderwave","Action, Self (15-ft cube), V/S",<>CON save, <Roll>2d8</Roll> thunder + pushed 10 ft; half & no push on success. Upcast: +1d8 per slot above 1st.</>],
+  ["Unseen Servant",<><RIT/>, Action, 60 ft, V/S/M</>,<>Invisible mindless force performs simple tasks (fetch, clean, pour, open unstuck doors) for 1 hr.</>],
+];
+const wiz2 = [
+  ["Scorching Ray","Action, 120 ft, V/S",<>Three rays, each a separate spell attack; on a hit, <Roll>2d6</Roll> fire damage per ray. Upcast: +1 ray per slot above 2nd.</>],
+  ["Misty Step","Bonus Action, Self, V",<>Teleport up to 30 ft to an unoccupied space you can see.</>],
+  ["Web",<><C/>, Action, 60 ft, V/S/M</>,<>20-ft cube of sticky webbing (difficult terrain); creatures there make a <Roll>DEX save</Roll> or are restrained. Restrained creatures can retry the save each turn (or another creature can help).</>],
+  ["Invisibility",<><C/>, Action, Touch, V/S/M</>,<>Target invisible until it attacks or casts a spell, up to 1 hr. Upcast: +1 target per slot above 2nd.</>],
+  ["Mirror Image","Action, Self, V/S",<>Create 3 illusory duplicates of yourself; attackers randomly target a duplicate instead of you (AC 10+DEX to hit a duplicate) until all 3 are popped.</>],
+  ["Hold Person",<><C/>, Action, 60 ft, V/S/M</>,<>Humanoid target WIS save or paralyzed for the duration, re-saving each turn. Upcast: +1 target per slot above 2nd.</>],
+  ["Suggestion",<><C/>, Action, 30 ft, V/M</>,<>WIS save or follows a reasonable course of action for up to 8 hr or until fulfilled.</>],
+  ["Acid Arrow","Action, 90 ft, V/S/M",<>Spell attack: <Roll>4d4</Roll> acid on hit (half on miss), plus <Roll>2d4</Roll> acid at the end of its next turn. Upcast: +1d4 (both instances) per slot above 2nd.</>],
+  ["Darkness",<><C/>, Action, 60 ft, V/M</>,<>15-ft-radius magical darkness (blocks darkvision) for 10 min; you can move the source if it's an object you're holding.</>],
+  ["Blur",<><C/>, Action, Self, V</>,<>Attackers have disadvantage against you for 1 min (unless they don't rely on sight).</>],
+  ["Alter Self",<><C/>, Action, Self, V/S</>,<>Choose: aquatic adaptation, change appearance, or natural weapons (unarmed strikes deal 1d6 and count as magical), for 1 hr.</>],
+  ["Levitate",<><C/>, Action, 60 ft, V/S/M</>,<>Target rises up to 20 ft and floats there for 10 min (CON save if unwilling); you can push/pull it 20 ft/turn as an action.</>],
+  ["Knock","Action, 60 ft, V",<>Opens one lock/stuck door/chest loudly (audible 300 ft).</>],
+  ["Detect Thoughts",<><C/>, Action, Self, V/S/M</>,<>Read surface thoughts of a creature within 30 ft; probe deeper with a WIS save.</>],
+  ["See Invisibility","Action, Self, V/S/M",<>See invisible creatures/objects and the Ethereal Plane for 1 hr.</>],
+  ["Spider Climb",<><C/>, Action, Touch, V/S/M</>,<>Target can climb difficult surfaces/ceilings without a check, and gains a climb speed equal to its walking speed, 1 hr.</>],
+  ["Enlarge/Reduce",<><C/>, Action, 30 ft, V/S/M</>,<>Target grows (+1d4 damage on weapon hits, advantage on STR checks/saves) or shrinks (-1d4 damage, disadvantage) for 1 min.</>],
+  ["Flaming Sphere",<><C/>, Action, 60 ft, V/S/M</>,<>5-ft sphere; creatures within 5 ft make a <Roll>DEX save</Roll> or take <Roll>2d6</Roll> fire (half on success). Bonus action to roll it 30 ft/turn. Upcast: +1d6 per slot above 2nd.</>],
+  ["Gust of Wind",<><C/>, Action, Self (60-ft line), V/S/M</>,<>STR save or pushed 15 ft; disperses gas, extinguishes small flames.</>],
+  ["Shatter","Action, 60 ft, V/S/M",<>CON save, <Roll>3d8</Roll> thunder in a 10-ft radius (half on success); also damages nonmagical objects. Upcast: +1d8 per slot above 2nd.</>],
+  ["Magic Weapon",<><C/>, Bonus Action, Touch, V/S</>,<>Target weapon becomes magical with +1 to attack & damage rolls, 1 hr. Upcast: +2 @4th slot, +3 @6th slot.</>],
+  ["Continual Flame","Action, Touch, V/S/M, GP cost","Object produces heatless flame permanently until dispelled."],
+  ["Arcane Lock","Action, Touch, V/S/M, GP cost","Permanently locks a door/chest/portal; only you or creatures you designate can open it normally."],
+  ["Blindness/Deafness","Action, 30 ft, V",<>CON save or blinded/deafened 1 min, re-save each turn. Upcast: +1 target per slot above 2nd.</>],
+  ["Darkvision","Action, Touch, V/S/M",<>Target gains 60-ft darkvision for 8 hr.</>],
+  ["Gentle Repose",<><RIT/>, Action, Touch, V/S/M</>,<>Corpse doesn't decay/become undead for 10 days.</>],
+  ["Locate Object",<><C/>, Action, Self, V/S/M</>,<>Sense direction to a known/general object within 1000 ft.</>],
+  ["Magic Mouth",<><RIT/>, Action, 30 ft, V/S/M, 1 min cast</>,<>Implant a message that triggers on a condition you set.</>],
+  ["Ray of Enfeeblement","Action, 60 ft, V/S",<>Spell attack; on hit, target's STR-based damage rolls are halved until the spell ends (1 min, re-save each turn).</>],
+  ["Rope Trick","Action, Touch, V/S/M",<>Rope + extradimensional space for up to 8 creatures, 1 hr — a great short-rest hidey-hole.</>],
+  ["Arcanist's Magic Aura","Action, Touch, V/S/M",<>Disguise an object/creature's magical aura from Detect Magic-type effects for 24 hr.</>],
+];
+const wiz3 = [
+  ["Fireball","Action, 150 ft, V/S/M",<>DEX save, <Roll>8d6</Roll> fire damage in a 20-ft-radius sphere (half on success). Upcast: +1d6 per slot above 3rd. Your signature Evocation nuke.</>],
+  ["Lightning Bolt","Action, Self (100-ft line), V/S/M",<>DEX save, <Roll>8d6</Roll> lightning damage in a 100-ft line, 5-ft wide (half on success). Upcast: +1d6 per slot above 3rd.</>],
+  ["Counterspell",<><span className="pill">Reaction</span>, 60 ft, S</>,<>Trigger: a creature within 60 ft casts a spell. Interrupt it; if its spell is 3rd level or lower, it fails automatically. If 4th level+, make an <Roll>ability check (INT) vs DC 10 + the spell's level</Roll> — success negates it.</>],
+  ["Haste",<><C/>, Action, 30 ft, V/S/M</>,<>Target's speed doubles, +2 AC, advantage on DEX saves, and an extra action (Attack [1 weapon], Dash, Disengage, Hide, or Use an Object) each turn, for 1 min. When it ends, the target is incapacitated (lethargy) for 1 round.</>],
+  ["Fly",<><C/>, Action, Touch, V/S/M</>,<>Target gains a flying speed of 60 ft for 10 min. Upcast: +1 target per slot above 3rd.</>],
+  ["Dispel Magic","Action, 120 ft, V/S",<>End a spell of 3rd level or lower on the target automatically; higher-level, <Roll>ability check vs DC 10 + spell's level</Roll>.</>],
+  ["Hypnotic Pattern",<><C/>, Action, 120 ft, S/M</>,<>30-ft-cube; each creature that sees it makes a <Roll>WIS save</Roll> or is charmed and incapacitated for the duration.</>],
+  ["Vampiric Touch",<><C/>, Action, Self, V/S</>,<>Melee spell attack: <Roll>3d6</Roll> necrotic on hit, and you regain half the damage dealt as HP. Upcast: +1d6 per slot above 3rd.</>],
+  ["Animate Dead","Action, Touch, V/S/M",<>Corpse becomes a skeleton or zombie under your control (up to 4 total from repeat castings); reissue commands daily or it acts hostile on its own.</>],
+  ["Bestow Curse",<><C/>, Action, Touch, V/S/M</>,<>WIS save or cursed for the duration (choose: disadvantage on checks/saves of one ability, disadvantage on attacks vs you, WIS save each turn or lose your turn, or your attacks deal +1d8 necrotic). Upcast @5th: also deals 1d8 necrotic on a failed initial save and can be made permanent.</>],
+  ["Clairvoyance",<><C/>, Action, 1 mile, V/S/M, 10 min cast</>,<>Invisible sensor lets you see or hear at a known/picturable location.</>],
+  ["Slow",<><C/>, Action, 120 ft, V/S/M</>,<>Up to 6 creatures in a 40-ft cube: <Roll>WIS save</Roll> or halved speed, -2 AC & DEX saves, no reactions, and only one action-or-bonus-action per turn, for the duration.</>],
+  ["Protection from Energy",<><C/>, Action, Touch, V/S</>,<>Resistance to one damage type (acid/cold/fire/lightning/thunder) for 1 hr.</>],
+  ["Sending","Action, Unlimited, V/S/M",<>25-word telepathic message to a known creature anywhere; it can reply in the same round.</>],
+  ["Tongues","Action, Touch, V",<>Target understands & is understood in any language for 1 hr.</>],
+  ["Nondetection","Action, Touch, V/S/M",<>Hide a target from divination magic for 8 hr.</>],
+  ["Glyph of Warding","Action, Touch, V/S/M, 1 hr cast",<>Store a spell (≤3rd level) or an explosive rune (5d8, save for half) that triggers on your specified condition.</>],
+  ["Magic Circle","Action, Touch, V/S/M, GP cost, 1 min cast",<>10-ft cylinder wards against a chosen creature type — can't enter voluntarily nor charm/frighten/possess through it.</>],
+  ["Major Image",<><C/>, Action, 120 ft, V/S/M</>,<>20-ft-cube illusion with sound, smell, temperature; you can move & change it as an action.</>],
+  ["Remove Curse","Action, Touch, V/S",<>Ends all curses on a creature, or breaks an item's curse (other magic remains).</>],
+  ["Phantom Steed",<><RIT/>, Action, 30 ft, V/S</>,<>Conjure a quasi-real horse (100 ft/round travel pace) for 1 hr; can't participate in combat.</>],
+  ["Sleet Storm",<><C/>, Action, 150 ft, V/S/M</>,<>20-ft-radius cylinder: difficult terrain, heavily obscured, DEX save or prone, extinguishes open flames.</>],
+  ["Stinking Cloud",<><C/>, Action, 90 ft, V/S/M</>,<>20-ft-radius sphere; CON save each turn or waste your action retching.</>],
+  ["Blink","Bonus Action, Self, V/S",<>At the end of each of your turns (roll d20, 11+), you vanish to the Ethereal Plane until the start of your next turn, for 1 min.</>],
+  ["Gaseous Form",<><C/>, Action, Touch, V/S/M</>,<>Target becomes a gas cloud: immune to nonmagical damage, can squeeze through gaps, fly speed 10 ft, for 1 hr.</>],
+  ["Water Breathing",<><RIT/>, Action, 30 ft, V/S/M</>,<>10 willing creatures breathe underwater for 24 hr.</>],
+  ["Fear",<><C/>, Action, Self (30-ft cone), V/S/M</>,<>WIS save or drops held items and flees from you for the duration.</>],
+];
+const wiz4 = [
+  ["Ice Storm","Action, 300 ft, V/S/M",<>20-ft-radius, 40-ft-tall cylinder; DEX save, <Roll>2d8</Roll> bludgeoning + <Roll>4d6</Roll> cold (half on success); ground becomes difficult terrain. Upcast: +1d8 bludgeoning per slot above 4th.</>],
+  ["Wall of Fire",<><C/>, Action, 120 ft, V/S/M</>,<>Wall (60 ft long/20 ft tall or ringed) of fire; DEX save or <Roll>5d8</Roll> fire (half on success) to those entering/starting adjacent. Upcast: +1d8 per slot above 4th.</>],
+  ["Fire Shield","Action, Self, V/S/M",<>Warm (resist cold, deal 2d8 fire to melee attackers) or Chill (resist fire, deal 2d8 cold to melee attackers) shield for 10 min; also sheds light.</>],
+  ["Evard's Black Tentacles",<><C/>, Action, 90 ft, V/S/M</>,<>20-ft square: DEX save, <Roll>3d6</Roll> bludgeoning + restrained (half & no restrain on success); restrained creatures take the damage again each turn they start there.</>],
+  ["Banishment",<><C/>, Action, 60 ft, V/S/M</>,<>CHA save or banished to a harmless demiplane (potentially permanently if not native to this plane) for the duration. Upcast: +1 target per slot above 4th.</>],
+  ["Dimension Door","Action, 500 ft, V",<>Teleport yourself (+1 willing creature) to a visualized point in range; occupied destination deals 4d6 force and shunts you to the nearest open space.</>],
+  ["Confusion",<><C/>, Action, 90 ft, V/S/M</>,<>10-ft-radius; WIS save or confused (roll d10 each turn) for the duration.</>],
+  ["Polymorph",<><C/>, Action, 60 ft, V/S/M</>,<>Unwilling target WIS save or transforms into a beast (CR ≤ its level) for the duration; reverts at 0 HP in beast form.</>],
+  ["Greater Invisibility",<><C/>, Action, Touch, V/S</>,<>Target invisible for 1 min, even while attacking or casting.</>],
+  ["Stoneskin",<><C/>, Action, Touch, V/S/M</>,<>Resistance to nonmagical bludgeoning/piercing/slashing for 1 hr.</>],
+  ["Phantasmal Killer",<><C/>, Action, 90 ft, V/S</>,<>WIS save or frightened, taking <Roll>4d10</Roll> psychic each of its turns from a manifested nightmare (half on later saves). Upcast: +1d10 per slot above 4th.</>],
+  ["Blight","Action, 30 ft, V/S",<>CON save, <Roll>8d8</Roll> necrotic (half on success); plant creatures have disadvantage. Upcast: +1d8 per slot above 4th.</>],
+  ["Conjure Minor Elementals","Action, 90 ft, V/S",<>Summon elementals to fight for you (1×CR2, 2×CR1, 4×CR½, or 8×CR¼).</>],
+  ["Control Water",<><C/>, Action, 300 ft, V/S/M</>,<>Flood, part, redirect, or whirlpool a body of water in a 100-ft cube.</>],
+  ["Locate Creature",<><C/>, Action, Self, V/S/M</>,<>Sense direction to a known creature within 1000 ft.</>],
+  ["Arcane Eye",<><C/>, Action, 30 ft, V/S/M</>,<>Invisible, flying (30 ft) sensor you see through for 1 hr.</>],
+  ["Fabricate","Action, 120 ft, V/S",<>Convert raw materials into a finished product of the same material (up to a 10-ft cube of material).</>],
+  ["Private Sanctum","Action, 120 ft, V/S/M, 10 min cast",<>Ward a 100-ft cube (sound-proof, sight-proof, teleport/scry-proof — choose effects) for 24 hr.</>],
+  ["Resilient Sphere",<><C/>, Action, 30 ft, V/S/M</>,<>DEX save or encased in an impervious force sphere for the duration — nothing gets in or out, including attacks.</>],
+  ["Secret Chest","Action, Touch, V/S/M, GP cost",<>Hide a chest on the Ethereal Plane; recall it (or send it back) at will for up to 60 days.</>],
+  ["Stone Shape","Action, Touch, V/S/M",<>Reshape a 5-ft portion of stone into any form.</>],
+  ["Hallucinatory Terrain","Action, 300 ft, V/S/M, 10 min cast",<>Disguise 150-ft-cube terrain for 24 hr.</>],
+  ["Faithful Hound",<><RIT/>, Action, 30 ft, V/S/M</>,<>Invisible phantom watchdog barks at intruders and bites (2d8 piercing) for 8 hr.</>],
+];
+
+/* ============================================================
+   Wild Shape beast forms (Moon) — with full attack detail
+============================================================ */
+const moonForms = {
+ 2:[["Brown Bear","CR 1 · 34 HP · AC 11 · Speed 40 ft, climb 30 ft",<>Multiattack: bite + claws. Bite <Roll>+6 to hit, 1d8+4</Roll> piercing. Claws <Roll>+6 to hit, 2d6+4</Roll> slashing.</>],
+    ["Dire Wolf","CR 1 · 37 HP · AC 14 · Speed 50 ft",<>Bite <Roll>+5 to hit, 2d6+3</Roll> piercing; target STR save (DC 13) or knocked prone. Pack Tactics: advantage if an ally is within 5 ft of target.</>],
+    ["Giant Hyena","CR 1 · 45 HP · AC 12 · Speed 50 ft",<>Bite <Roll>+5 to hit, 2d6+3</Roll> piercing. Rampage: on reducing a creature to 0 HP, bonus-action move up to half speed and make one bite attack.</>],
+    ["Giant Spider","CR 1 · 26 HP · AC 14 · Speed 30 ft, climb 30 ft",<>Bite <Roll>+5 to hit, 1d8+3</Roll> piercing + target CON save (DC 11) or take <Roll>2d8</Roll> poison (half if made) and is poisoned 1 hr (unconscious if poison damage taken while already poisoned). Web (recharge 5-6): ranged weapon attack <Roll>+5 to hit</Roll>, range 30/60 ft — on a hit, target is restrained (DC 12 STR check as an action to break free; webbing itself has AC 10, 5 HP, vulnerable to fire, immune to bludgeoning/poison/psychic).</>]],
+ 6:[["Polar Bear","CR 2 · 42 HP · AC 12 · Speed 40 ft, swim 30 ft",<>Multiattack bite+claws. Bite <Roll>+7 to hit, 1d8+5</Roll> piercing. Claws <Roll>+7 to hit, 2d6+5</Roll> slashing.</>],
+    ["Giant Constrictor Snake","CR 2 · 60 HP · AC 12 · Speed 30 ft, swim 30 ft",<>Bite <Roll>+6 to hit, 2d6+4</Roll> piercing. Constrict <Roll>+6 to hit, 2d8+4</Roll> bludgeoning + target restrained (grappled, escape DC 16) until the grapple ends; can't constrict a new target while grappling one.</>],
+    ["Giant Elk","CR 2 · 42 HP · AC 14 · Speed 60 ft",<>Ram <Roll>+6 to hit, 2d6+4</Roll> bludgeoning; if moved ≥20 ft straight first, target STR save (DC 14) or knocked prone. Hooves <Roll>+6 to hit, 4d8+4</Roll> bludgeoning vs a prone creature.</>],
+    ["Saber-Toothed Tiger","CR 2 · 52 HP · AC 12 · Speed 40 ft",<>Bite <Roll>+6 to hit, 1d10+5</Roll> piercing. Claw <Roll>+6 to hit, 2d6+5</Roll> slashing. Pounce: if it moves ≥20 ft straight toward a target then hits with a claw, target STR save (DC 14) or prone, then bonus-action bite.</>]],
+};
+
+/* ============================================================
+   Class registries
+============================================================ */
+const CLASSES = {
+  lore:{label:"Lore Bard", kind:"caster", cast:"CHA", statLabel:"CHA", saves:"DEX & CHA", weapons:"simple"},
+  shadow:{label:"Shadow Monk", kind:"monk", sub:"shadow", saves:"STR & DEX"},
+  elements:{label:"4 Elements Monk", kind:"monk", sub:"elements", saves:"STR & DEX"},
+  life:{label:"Life Cleric", kind:"caster", cast:"WIS", statLabel:"WIS", saves:"WIS & CHA", weapons:"clericSimple"},
+  moon:{label:"Moon Druid", kind:"caster", cast:"WIS", statLabel:"WIS", saves:"INT & WIS", weapons:"druid"},
+  wizard:{label:"Evocation Wizard", kind:"caster", cast:"INT", statLabel:"INT", saves:"INT & WIS", weapons:"wizard"},
+};
+const ORDER = ["lore","shadow","elements","life","moon","wizard"];
+const SLOTS = {1:[2],2:[3],3:[4,2],4:[4,3],5:[4,3,2],6:[4,3,3],7:[4,3,3,1]};
+const PROF = {1:2,2:2,3:2,4:2,5:3,6:3,7:3};
+const BOOKS = {lore:{cant:bardCant,l1:bard1,l2:bard2,l3:bard3,l4:bard4}, life:{cant:clrCant,l1:clr1,l2:clr2,l3:clr3,l4:clr4}, moon:{cant:druCant,l1:dru1,l2:dru2,l3:dru3,l4:dru4}, wizard:{cant:wizCant,l1:wiz1,l2:wiz2,l3:wiz3,l4:wiz4}};
+
+/* ---------------- FEATURE PANELS (detailed) ---------------- */
+function LoreFeatures(lv){
+  const items=[];
+  items.push(<Act key="bi" name="Bardic Inspiration" meta={`Bonus Action · 60 ft · Die: ${lv>=5?'d8':'d6'} · Uses = CHA mod (min 1), refresh: ${lv>=5?'short or long rest':'long rest only'}`}>
+    <p>As a bonus action, choose one creature other than yourself within 60 ft who can hear you. It gains a Bardic Inspiration die.</p>
+    <p>Once within the next 10 minutes, that creature can roll the die and add it to <b>one</b> ability check, attack roll, or saving throw it makes — after rolling but before the result is known. A creature can only hold one Inspiration die at a time.</p>
+  </Act>);
+  if(lv>=2){
+    items.push(<Act key="jot" name="Jack of All Trades" meta="Passive">
+      <p>Add half your proficiency bonus (rounded down) to any ability check that doesn't already include your proficiency bonus — this includes initiative rolls if you're not already proficient in it.</p>
+    </Act>);
+    items.push(<Act key="sor" name="Song of Rest" meta="Passive · d6 die">
+      <p>If you and any friendly creatures who can hear your performance regain hit points at the end of a short rest by spending one or more Hit Dice, each of them regains an extra <Roll>1d6</Roll> HP.</p>
+    </Act>);
+  }
+  if(lv>=3){
+    items.push(<Act key="cw" name="Cutting Words" meta="Reaction · 60 ft · Costs 1 Bardic Inspiration die">
+      <p>When a creature you can see within 60 ft makes an attack roll, an ability check, or a damage roll, you can expend one Bardic Inspiration die (roll it) and subtract the number rolled from that creature's roll — reducing the chance it succeeds or lowering the damage it deals.</p>
+      <p>You must use this <b>after</b> the creature rolls but <b>before</b> the DM says whether it succeeds. A creature immune to being charmed is immune to this effect.</p>
+    </Act>);
+    items.push(<Act key="bp" name="Bonus Proficiencies" meta="Passive">
+      <p>Gain proficiency in three skills of your choice.</p>
+    </Act>);
+    items.push(<Act key="exp" name="Expertise" meta="Passive">
+      <p>Choose two skill proficiencies you have; your proficiency bonus is doubled for any ability check using them.</p>
+    </Act>);
+  }
+  if(lv>=4){
+    items.push(<Act key="asi" name="Ability Score Improvement" meta="Passive">
+      <p>Increase one ability score by 2, or two scores by 1 each (max 20), or take a feat instead. Raising CHA increases your spell DC/attack, Bardic Inspiration relevance, and all CHA-based checks.</p>
+    </Act>);
+  }
+  if(lv>=5){
+    items.push(<Act key="foi" name="Font of Inspiration" meta="Passive">
+      <p>You regain all expended uses of Bardic Inspiration when you finish a <b>short or long rest</b> (previously long rest only).</p>
+    </Act>);
+  }
+  if(lv>=6){
+    items.push(<Act key="cc" name="Countercharm" meta="Action · Self · Lasts until end of your next turn">
+      <p>Start a performance that lasts until the end of your next turn. During that time, you and any friendly creatures within 30 ft of you have advantage on saving throws against being frightened or charmed. A creature must be able to hear you to benefit.</p>
+    </Act>);
+    items.push(<Act key="ams" name="Additional Magical Secrets" meta="Passive — one-time pick at level 6">
+      <p>Learn two spells of your choice from <b>any</b> class's spell list, each of a level you can cast (≤3rd level at this tier). They count as bard spells for you and don't count against your number of bard spells known.</p>
+      <p>Strong combat picks at this tier: <i>Counterspell</i> (reaction, shut down enemy spellcasting), <i>Spirit Guardians</i> (cleric AoE), <i>Haste</i> (wizard, extra attack + AC), <i>Fireball</i> (wizard, 8d6 AoE), <i>Aura of Vitality</i> (paladin, repeated healing).</p>
+    </Act>);
+  }
+  if(lv>=7){
+    items.push(<Act key="t4" name="4th-Level Spells Unlocked" meta="Passive">
+      <p>Your spell slots now reach 4th level. You learn a new bard spell, which can be of 4th level or lower (see full spell list below).</p>
+    </Act>);
+  }
+  return items;
+}
+function LifeFeatures(lv){
+  const items=[];
+  items.push(<Act key="dol" name="Disciple of Life" meta="Passive — modifies your healing spells">
+    <p>Whenever you use a spell of 1st level or higher to restore hit points to a creature, that creature regains additional hit points equal to <Roll>2 + the spell's level</Roll>.</p>
+    <p>Example: Cure Wounds cast with a 1st-level slot heals 1d8+WIS+3; cast with a 3rd-level slot heals 1d8+WIS (upcast to 3d8+WIS) +5.</p>
+  </Act>);
+  items.push(<Act key="ha" name="Bonus Proficiency: Heavy Armor" meta="Passive">
+    <p>You gain proficiency with heavy armor (allows plate/chain without the usual training).</p>
+  </Act>);
+  items.push(<Act key="ds" name="Domain Spells" meta="Always prepared — don't count against your prepared total">
+    <p>Bless and Cure Wounds are always available to you, in addition to your normal prepared spells.</p>
+  </Act>);
+  if(lv>=2){
+    items.push(<Act key="cdpl" name="Channel Divinity: Preserve Life" meta="Action · 30 ft · 1 use, refresh short/long rest">
+      <p>Present your holy symbol and restore a total number of hit points equal to <Roll>5 × your cleric level</Roll>. Choose any creatures within 30 ft (including yourself) and divide the pool among them as you wish.</p>
+      <p><b>Limit:</b> this feature can restore a creature to no more than half its hit point maximum. It can't affect undead or constructs.</p>
+    </Act>);
+    items.push(<Act key="cdtu" name="Channel Divinity: Turn Undead" meta="Action · 30 ft · Shares uses with Preserve Life">
+      <p>Present your holy symbol; each undead within 30 ft that can see/hear you makes a <Roll>WIS save vs your Channel Divinity DC</Roll>. On a fail, it's turned for 1 minute or until it takes damage — a turned creature must spend its turns trying to move as far from you as possible and can't willingly move within 30 ft of you; it can't take reactions and can only use the Dash action or try to escape a restraint.</p>
+    </Act>);
+  }
+  if(lv>=4){
+    items.push(<Act key="asi" name="Ability Score Improvement" meta="Passive">
+      <p>+2 one score / +1+1 / feat. Raising WIS increases spell DC, spell attack, all your healing-spell math indirectly (WIS mod in the die), and Channel Divinity DC.</p>
+    </Act>);
+  }
+  if(lv>=5){
+    items.push(<Act key="du" name="Destroy Undead (CR 1/2 or lower)" meta="Passive — modifies Turn Undead">
+      <p>When an undead of CR ½ or lower fails its save against your Turn Undead, it is destroyed instantly instead of merely fleeing.</p>
+    </Act>);
+  }
+  if(lv>=6){
+    items.push(<Act key="bh" name="Blessed Healer" meta="Passive — triggers whenever you heal another creature">
+      <p>The healing spells you cast on others heal you too: whenever you cast a spell of 1st level or higher that restores HP to a creature <b>other than yourself</b>, you regain <Roll>2 + the spell's level</Roll> HP.</p>
+    </Act>);
+    items.push(<Act key="cd2" name="Channel Divinity — 2 uses" meta="Passive">
+      <p>You can now use Channel Divinity twice between rests instead of once.</p>
+    </Act>);
+  }
+  if(lv>=7){
+    items.push(<Act key="t4" name="4th-Level Spells Unlocked" meta="Passive">
+      <p>Domain adds Death Ward and Guardian of Faith as always-prepared spells (see full spell list below).</p>
+    </Act>);
+  }
+  return items;
+}
+function MoonFeatures(lv){
+  const items=[];
+  items.push(<Act key="dr" name="Druidic" meta="Passive"><p>You know Druidic, a secret language of druids. You can also leave hidden messages in it that only another druid can find/read.</p></Act>);
+  if(lv>=2){
+    items.push(<Act key="ws" name="Wild Shape" meta={`Action to enter · 2 uses per rest · Duration: half your druid level in hours (currently ${Math.floor(lv/2)} hr) · Refresh: short or long rest`}>
+      <p>Magically transform into a beast you've seen before, whose CR is at or below the limit for your level (Moon druids: <b>CR 1</b> at 2nd, no swim/fly restriction). Your game statistics are replaced by the beast's (except mental scores, personality, and proficiency bonus), but you keep your alignment and Intelligence/Wisdom/Charisma-based skills if the beast doesn't already have them better.</p>
+      <p>You can't cast spells while shaped (though you can still use class features that don't require an action, like Combat Wild Shape below). Your gear either merges into the form, falls to the ground, or is worn — your choice at time of transformation.</p>
+      <p>You revert early if you drop to 0 HP in beast form (excess damage carries to your normal HP after reverting), or you can revert as a bonus action.</p>
+    </Act>);
+    items.push(<Act key="cws" name="Combat Wild Shape" meta="Moon feature · Bonus Action to transform · Bonus Action + spell slot to heal while shaped">
+      <p>You can use Wild Shape as a <b>bonus action</b> rather than an action.</p>
+      <p>While transformed, you can expend a spell slot as a bonus action to heal yourself: you regain <Roll>1d8 HP per level of the slot spent</Roll> (e.g., a 2nd-level slot heals 2d8).</p>
+    </Act>);
+  }
+  if(lv>=5){
+    items.push(<Act key="ps" name="Primal Strike" meta="Passive"><p>Your attacks in beast form count as magical for the purpose of overcoming resistance and immunity to nonmagical attacks and damage.</p></Act>);
+  }
+  if(lv>=6){
+    items.push(<Act key="cf" name="Circle Forms — CR 2" meta="Passive"><p>Your Wild Shape CR limit increases to 2, unlocking stronger forms like Polar Bear, Giant Constrictor Snake, Giant Elk, and Saber-Toothed Tiger.</p></Act>);
+  }
+  return items;
+}
+
+function WizardFeatures(lv){
+  const items=[];
+  items.push(<Act key="sc" name="Spellcasting" meta="Passive — INT-based, spellbook caster">
+    <p>You cast wizard spells from your <b>spellbook</b>. Each dawn (or whenever you finish a long rest), you prepare a number of spells equal to your <Roll>INT modifier + wizard level (minimum 1)</Roll>, chosen from spells written in your spellbook, of a level you have slots for.</p>
+    <p>You start with 6 1st-level spells in your spellbook, and add 2 spells of your choice to it for free every time you gain a wizard level (must be a level you can cast). You can also copy spells found on scrolls/other spellbooks into it (costs time and gold).</p>
+    <p>Any spell in your spellbook tagged "Ritual" can be cast as a 10-minute ritual without expending a slot, even if it isn't prepared that day.</p>
+  </Act>);
+  items.push(<Act key="ar" name="Arcane Recovery" meta="Once per day, after a short rest">
+    <p>The first time you finish a short rest each day, you can recover expended spell slots with a combined level equal to or less than <Roll>half your wizard level, rounded up</Roll> — none of the recovered slots can be 6th level or higher.</p>
+    <p>Example at level 4: recover up to 2 levels worth — either one 2nd-level slot, or two 1st-level slots.</p>
+  </Act>);
+  if(lv>=2){
+    items.push(<Act key="es" name="Evocation Savant" meta="Passive — School of Evocation">
+      <p>The gold cost and time required for you to copy an Evocation spell into your spellbook is halved.</p>
+    </Act>);
+    items.push(<Act key="ss" name="Sculpt Spells" meta="Passive — School of Evocation, triggers when you cast an Evocation spell that affects an area">
+      <p>When you cast an Evocation spell that affects other creatures you can see, you can choose a number of them equal to <Roll>1 + the spell's level</Roll>. Those chosen creatures automatically succeed on their saving throw against the spell, and take no damage if they would normally take half damage on a success.</p>
+      <p>This is how an Evocation wizard drops a Fireball on top of a fight without also roasting their own melee allies caught in the blast — designate your party members as protected before you cast.</p>
+    </Act>);
+  }
+  if(lv>=4){
+    items.push(<Act key="asi" name="Ability Score Improvement" meta="Passive">
+      <p>+2 one score / +1+1 / feat. INT to 18 is the priority — it drives your DC, spell attack, and how many spells you can prepare each day.</p>
+    </Act>);
+    items.push(<Act key="c4" name="4th Cantrip Known" meta="Passive"><p>You learn a 4th cantrip (up from 3).</p></Act>);
+  }
+  if(lv>=6){
+    items.push(<Act key="pc" name="Potent Cantrip" meta="Passive — School of Evocation, triggers when a creature succeeds a save against your damaging cantrip">
+      <p>When a creature succeeds on a saving throw against one of your damaging cantrips (e.g. Acid Splash, Poison Spray, Chill Touch's necrotic component if it required a save — note most of your signature cantrips like Fire Bolt/Shocking Grasp/Ray of Frost are attack rolls, not saves, so this specifically matters for the save-based ones), it still takes half the cantrip's damage instead of none, though it suffers no additional effect.</p>
+    </Act>);
+  }
+  if(lv>=7){
+    items.push(<Act key="t4" name="4th-Level Spells Unlocked" meta="Passive"><p>Your spell slots reach 4th level. Add spells to your spellbook as normal on leveling (2 free spells of a level you can cast, chosen from the wizard list).</p></Act>);
+  }
+  return items;
+}
+
+/* ---------------- MARTIAL ARTS & KI — plain-language explainer (shared) ---------------- */
+const MA_DIE_TABLE = [
+  ["1–4","1d4","Your starting die — also the minimum damage of any unarmed strike or monk weapon."],
+  ["5–10","1d6","Unlocked at level 5, alongside Extra Attack."],
+  ["11–16","1d8","Outside this sheet's 1–7 range — shown for reference."],
+  ["17–20","1d10","Outside this sheet's 1–7 range — shown for reference."],
+];
+const KI_ABILITIES = [
+  ["Flurry of Blows","1 ki","Bonus Action","2 extra unarmed strikes right after your Attack action — your main damage lever every ki-positive turn."],
+  ["Patient Defense","1 ki","Bonus Action","Dodge as a bonus action — attackers have disadvantage vs you until your next turn."],
+  ["Step of the Wind","1 ki","Bonus Action","Disengage or Dash as a bonus action, plus double jump distance — best for repositioning or chasing."],
+  ["Stunning Strike","1 ki","On a melee hit (L5+)","Forces a CON save or the target is stunned — auto-fails STR/DEX saves, attacks vs it have advantage, adjacent hits auto-crit."],
+  ["Deflect Missiles → throw back","1 ki","Reaction, after catching a projectile (L3+)","Turns a ranged attack you just no-sold into your own attack against another target."],
+  ["Shadow Arts (Shadow only)","2 ki","Action (L3+)","Cast Darkness, Darkvision, Pass without Trace, or Silence with no material components."],
+  ["Elemental Discipline (4 Elements only)","1–4 ki","Usually an Action (L3+)","Spend ki to trigger an elemental effect or cast a spell — see the discipline table on that subclass's tab."],
+];
+function MartialArtsKiGuide({lv}){
+  const showLv = lv || 7;
+  const maDie = showLv>=17?'1d10': showLv>=11?'1d8': showLv>=5?'1d6':'1d4';
+  const kiPool = showLv>=2?showLv:0;
+  return (<>
+    <Sec title="What Martial Arts Actually Does">
+      <div className="actcard">
+        <p><b>The short version:</b> Martial Arts lets you fight with your fists or a small set of light weapons as well as a fighter swings a sword — it upgrades your unarmed damage, lets you use DEX instead of STR, and gives you a free extra attack every single turn, no ki required.</p>
+        <ul>
+          <li><b>Use DEX instead of STR</b> for the attack roll and damage roll of unarmed strikes and monk weapons — pick whichever is better and stick with it.</li>
+          <li><b>Bigger unarmed damage die</b> — replaces the flat "1 bludgeoning" of a normal unarmed strike with your Martial Arts die. This die is <i>added to</i> your ability modifier just like any weapon (damage = die + STR/DEX mod, not one or the other) — and it also replaces a monk weapon's own die whenever your Martial Arts die is bigger.</li>
+          <li><b>Active from level 1</b> — every monk gets this immediately, not something that unlocks later. (Your subclass's level-3 feature — Shadow Arts or Disciple of the Elements — adds new ki options; it doesn't change how the base Martial Arts math works.)</li>
+          <li><b>Free bonus-action strike</b> — every time you take the Attack action using an unarmed strike or a monk weapon, you get one extra unarmed strike as a bonus action, at no ki cost. This is always on; Flurry of Blows (below) replaces it with two strikes instead of one when you want to spend ki.</li>
+        </ul>
+      </div>
+      <table className="rtable"><thead><tr><th style={{width:'15%'}}>Monk Level</th><th style={{width:'15%'}}>Die</th><th>What Changes</th></tr></thead>
+      <tbody>{MA_DIE_TABLE.map((r,i)=>{
+        const isCurrent = lv && r[1]===maDie;
+        return (<tr key={i} style={isCurrent?{outline:'2px solid var(--blood)'}:undefined}><td className="nm" data-label="Monk Level">{r[0]}{isCurrent?' ← you are here':''}</td><td data-label="Die"><Roll>{r[1]}</Roll></td><td data-label="What Changes">{r[2]}</td></tr>);
+      })}</tbody></table>
+    </Sec>
+    <Sec title="What Ki Actually Does">
+      <div className="actcard">
+        <p><b>The short version:</b> Ki points are a once-per-rest resource pool that fuels your strongest moves — think of them as "special move" charges. You get a number of points equal to your monk level (starting at 2nd level), and every point spent comes back on a short <i>or</i> long rest, so don't be shy about using them.</p>
+        <ul>
+          <li><b>Current pool at level {showLv}:</b> {kiPool||'0 — Ki unlocks at level 2'} points.</li>
+          <li><b>Ki Save DC</b> (used whenever an ability forces an enemy to resist it): <Roll>8 + prof + WIS mod</Roll>.</li>
+          <li><b>Refresh:</b> all spent ki returns after a short <i>or</i> long rest — unlike spell slots, you can safely spend it every fight.</li>
+        </ul>
+      </div>
+      <table className="rtable"><thead><tr><th style={{width:'20%'}}>Ability</th><th style={{width:'10%'}}>Cost</th><th style={{width:'22%'}}>When You Use It</th><th>What It Does</th></tr></thead>
+      <tbody>{KI_ABILITIES.map((r,i)=>(<tr key={i}><td className="nm" data-label="Ability">{r[0]}</td><td data-label="Cost"><span className="ki">{r[1]}</span></td><td data-label="When">{r[2]}</td><td data-label="Effect">{r[3]}</td></tr>))}</tbody></table>
+    </Sec>
+    <Sec title="Turn-by-Turn: How to Actually Spend Ki">
+      <div className="actcard">
+        <p><b>Early levels (2–4), before Extra Attack:</b> Your turn is Attack action (1 hit) + either your free bonus strike (no ki) or spend 1 ki for Flurry of Blows (2 bonus strikes instead of 1). Flurry is almost always worth it in a fight you intend to win quickly. Save 1 ki in reserve for Patient Defense or Step of the Wind if things go bad.</p>
+        <p><b>Level 5+, after Extra Attack:</b> Your turn is now Attack action (2 hits) + bonus strike/Flurry. On the <i>first</i> hit of that Attack action, consider spending 1 ki on Stunning Strike against the most dangerous enemy — locking down a real threat is usually worth more than the extra Flurry damage. You can still Flurry afterward if you have ki to spare.</p>
+        <p><b>Ki budget rule of thumb:</b> you have {kiPool||2} points per rest. In a multi-fight day, don't spend more than half your pool on a single non-critical fight — but never end a rest sitting on unspent ki either, since it's free to refresh.</p>
+      </div>
+    </Sec>
+  </>);
+}
+
+/* ---------------- MONK detailed action panels ---------------- */
+function monkActions(lv, sub){
+  const maDie = lv>=17?'1d10': lv>=11?'1d8': lv>=5?'1d6':'1d4';
+  const acts=[];
+  acts.push(<Act key="ma" name="Martial Arts — Bonus Unarmed Strike" meta={`Bonus Action · Die: ${maDie} · Requires: took the Attack action this turn using an unarmed strike or monk weapon`}>
+    <p>Immediately after you take the Attack action on your turn, you can make one unarmed strike as a bonus action.</p>
+    <p>Unarmed strikes and monk weapons use your choice of STR or DEX for both the attack and damage roll, and deal your Martial Arts die instead of the normal 1 bludgeoning (or the weapon's die, if higher — the monk weapon's normal die is used if larger than your current Martial Arts die).</p>
+  </Act>);
+  if(lv>=2){
+    acts.push(<Act key="ki" name="Ki Points" meta={`Pool: ${lv} · Save DC = 8 + prof + WIS · Refresh: short or long rest`}>
+      <p>Many of your features below spend ki points. All expended points return on a short or long rest. Your Ki save DC is used whenever a feature calls for the target to resist it (e.g., Stunning Strike, Water Whip, Fist of Unbroken Air).</p>
+    </Act>);
+    acts.push(<Act key="fob" name="Flurry of Blows" meta="Bonus Action · 1 ki point">
+      <p>Immediately after taking the Attack action on your turn, spend 1 ki point to make <b>two</b> unarmed strikes as a bonus action (replaces the single Martial Arts bonus strike). Each hit deals your Martial Arts die (<Roll>{maDie} + STR/DEX</Roll>).</p>
+    </Act>);
+    acts.push(<Act key="pd" name="Patient Defense" meta="Bonus Action · 1 ki point">
+      <p>Take the Dodge action as a bonus action on your turn: until the start of your next turn, any attack roll made against you has disadvantage if you can see the attacker, and you make DEX saves with advantage.</p>
+    </Act>);
+    acts.push(<Act key="sow" name="Step of the Wind" meta="Bonus Action · 1 ki point">
+      <p>Take the Disengage or Dash action as a bonus action, and your jump distance is doubled for the turn.</p>
+    </Act>);
+  }
+  if(lv>=3){
+    acts.push(<Act key="dm" name="Deflect Missiles" meta="Reaction · Trigger: hit by a ranged weapon attack">
+      <p>Reduce the damage you take from the triggering ranged weapon attack by <Roll>1d10 + DEX mod + monk level</Roll>. If this reduces the damage to 0, you catch the missile (if it's small enough to hold in one hand and you have a free hand).</p>
+      <p>If you catch it, you may spend 1 ki point as part of the same reaction to make a ranged attack with the weapon you just caught, using it as if it were a monk weapon: attack roll <Roll>d20 + DEX + prof</Roll>, damage <Roll>{maDie} + DEX</Roll>, range 20/60 ft, targeting a creature within range that you can see.</p>
+    </Act>);
+  }
+  if(lv>=4){
+    acts.push(<Act key="sf" name="Slow Fall" meta="Reaction · Trigger: you are falling">
+      <p>Reduce the falling damage you take by <Roll>5 × your monk level</Roll> (= {5*lv} at level {lv}). No ki cost.</p>
+    </Act>);
+  }
+  if(lv>=5){
+    acts.push(<Act key="ea" name="Extra Attack" meta="Passive — modifies the Attack action">
+      <p>You can attack twice, instead of once, whenever you take the Attack action on your turn. You can still follow this up with your Martial Arts bonus strike or Flurry of Blows for a 3rd/4th hit.</p>
+    </Act>);
+    acts.push(<Act key="ss" name="Stunning Strike" meta="1 ki point · Trigger: you hit a creature with a melee weapon or unarmed strike">
+      <p>When you hit a creature with a melee weapon attack, you can spend 1 ki point to attempt to stun it. The target makes a <Roll>CON save vs your Ki DC</Roll>; on a failure, it is <b>stunned</b> until the end of your next turn (can't take actions or reactions, auto-fails STR/DEX saves, attacks against it have advantage, and any attack roll against it from within 5 ft is an automatic critical hit).</p>
+      <p>No hard cap on uses per turn beyond your available ki — very strong on the first hit of an Extra Attack + Flurry sequence to lock a dangerous target down before its turn.</p>
+    </Act>);
+  }
+  if(lv>=6){
+    acts.push(<Act key="kes" name="Ki-Empowered Strikes" meta="Passive"><p>Your unarmed strikes count as magical weapons for the purpose of overcoming resistance and immunity to nonmagical attacks and damage.</p></Act>);
+  }
+  if(lv>=7){
+    acts.push(<Act key="ev" name="Evasion" meta="Passive — triggers on DEX-save area effects (e.g., fireball, breath weapons)">
+      <p>When subjected to an effect that allows a DEX save for half damage, you instead take no damage on a success and only half damage on a failure.</p>
+    </Act>);
+    acts.push(<Act key="som" name="Stillness of Mind" meta="Action · Self">
+      <p>End one effect on yourself that is causing you to be charmed or frightened.</p>
+    </Act>);
+  }
+  if(sub==='shadow'){
+    if(lv>=3){
+      acts.push(<Act key="sa" name="Shadow Arts" meta="Action · 2 ki points per casting · Minor Illusion is free & unlimited">
+        <p>Spend <b>2 ki points</b> to cast one of the following spells without needing material components. Each casting is a separate 2-ki expenditure:</p>
+        <ul>
+          <li><b>Darkness</b> — 15-ft radius of magical darkness for 10 min. Note: ordinary darkvision <i>cannot</i> see through it, including your own — so this blinds you too unless you have Devil's Sight or similar.</li>
+          <li><b>Darkvision</b> — grant a creature you touch 60-ft darkvision for 8 hours. Long duration makes this the most ki-efficient option: cast it, short rest to refund the ki, and the party keeps 7+ hours of darkvision.</li>
+          <li><b>Pass without Trace</b> — <Roll>+10 to Stealth</Roll> for you and allies within 30 ft, and you can't be tracked non-magically. Concentration, 1 hour. Usually the strongest pick.</li>
+          <li><b>Silence</b> — 20-ft radius where no sound exists; blocks any spell with a Verbal component. Ritual-castable in the base spell, but not when cast this way.</li>
+        </ul>
+        <p>You also learn the <b>Minor Illusion</b> cantrip if you don't already know it — that one costs no ki and can be used at will.</p>
+        <p className="note" style={{margin:'6px 0 0'}}>Budget warning: at level 3 you only have 3 ki, so a single Shadow Arts casting eats most of your pool and competes directly with Flurry of Blows and Stunning Strike. This feature gets much more usable around levels 6–8.</p>
+      </Act>);
+    }
+    if(lv>=6){
+      acts.push(<Act key="sst" name="Shadow Step" meta="Bonus Action · NO ki cost · Requires: you are in dim light or darkness">
+        <p>When you are in dim light or darkness, teleport up to <Roll>60 feet</Roll> to an unoccupied space you can see that is <b>also</b> in dim light or darkness.</p>
+        <p>You then have <b>advantage on the first melee attack you make before the end of the turn</b>.</p>
+        <p>This is your signature move and it is <i>free</i> — it doesn't compete with your ki, so a typical turn is: Shadow Step (bonus action) into position with advantage → Attack action → spend ki on Stunning Strike. Because it uses your bonus action, it does compete with Flurry of Blows.</p>
+        <p className="note" style={{margin:'6px 0 0'}}>Two gotchas: you must be able to <i>see</i> the destination, so you can't jump into your own magical Darkness; and in bright daylight with no shadows, the feature simply doesn't work.</p>
+      </Act>);
+    }
+  }
+  if(sub==='elements'){
+    if(lv>=3){
+      acts.push(<Act key="doe" name="Disciple of the Elements" meta="Passive — you know Elemental Attunement + 1 more discipline at L3, +1 more at L6">
+        <p>You learn magical <b>elemental disciplines</b> that each cost ki to use. You know <b>Elemental Attunement</b> plus <b>one</b> discipline of your choice at 3rd level, and learn <b>one additional</b> discipline at 6th level (then again at 11th and 17th, outside this sheet's range).</p>
+        <p>Whenever you learn a new discipline, you may also swap one discipline you already know for a different one.</p>
+        <p><b>Casting elemental spells:</b> disciplines that cast a spell use that spell's normal casting time and rules, but you never need material components. Saving throws against your disciplines use your <b>Ki save DC</b>.</p>
+        <p><b>Upcasting (5th level+):</b> you may spend extra ki to raise a discipline-spell's level by 1 per extra ki, if that spell scales. The total ki spent on one spell is capped by your monk level: <Roll>max 3 ki at levels 5–8</Roll> (4 at 9–12, 5 at 13–16, 6 at 17+).</p>
+        <p className="note" style={{margin:'6px 0 0'}}>Action-economy warning: nearly every discipline uses your <b>Action</b>, which means you did <i>not</i> take the Attack action — so you get no Martial Arts bonus strike and no Flurry of Blows that turn. Fangs of the Fire Snake is the notable exception, since it rides on the Attack action.</p>
+      </Act>);
+      acts.push(<Act key="ea" name="Elemental Attunement" meta="Action · FREE (no ki) · 30 ft · Always known">
+        <p>Briefly control elemental forces within 30 feet, producing one of:</p>
+        <ul>
+          <li>A harmless instantaneous sensory effect (sparks, a puff of wind, mist, rumbling stone).</li>
+          <li>Instantly light or snuff out a candle, torch, or small campfire.</li>
+          <li>Chill or warm up to 1 lb of nonliving material for up to 1 hour.</li>
+          <li>Shape earth, fire, water, or mist that fits in a 1-foot cube into a crude form for 1 minute.</li>
+        </ul>
+        <p>Purely utility/flavor — no damage. Think of it as the monk's cantrip-tier party trick.</p>
+      </Act>);
+    }
+  }
+  return acts;
+}
+
+/* ---------------- WEAPON PANELS PER CLASS ---------------- */
+function LoreWeapons(){
+  return (<>
+    <Sec title="Simple Weapons (all bards proficient)">
+      <WeaponTable rows={simpleMelee.concat(simpleRanged)} atkFormula="d20 + STR or DEX mod + prof (finesse/ranged lets you use DEX; else STR)" dmgFormula="weapon die + same modifier used for the attack" note="Bards are proficient with all simple weapons." />
+    </Sec>
+    <Sec title="Bard-Specific Martial Weapons">
+      <WeaponTable rows={bardMartial} atkFormula="d20 + STR or DEX mod + prof" dmgFormula="weapon die + same modifier" note="Bards additionally get these four martial weapons even without martial-weapon proficiency generally. Rapier/shortsword (finesse) or hand crossbow pair well with a DEX-based Lore bard; two-handed longsword suits a STR build." />
+    </Sec>
+  </>);
+}
+function LifeWeapons(){
+  return (<>
+    <Sec title="Simple Weapons (all clerics proficient)">
+      <WeaponTable rows={clericWeapons} atkFormula="d20 + STR mod + prof (DEX instead if the weapon has Finesse — none of the simple list does except Dagger)" dmgFormula="weapon die + STR mod (or DEX for Dagger if you choose finesse)" note="Life Domain does not grant martial weapon proficiency (unlike War or Tempest domain) — you're limited to the simple weapon list plus whatever your race/background grants. Most Life clerics use a mace or quarterstaff and rely on spells for damage." />
+    </Sec>
+  </>);
+}
+function MoonWeapons(){
+  return (<>
+    <Sec title="Druid Weapon Proficiencies">
+      <WeaponTable rows={druidWeapons} atkFormula="d20 + STR or DEX (finesse) mod + prof; WIS instead if using Shillelagh on a club/quarterstaff" dmgFormula="weapon die + same modifier (Shillelagh forces the die to 1d8 + WIS)" note="Druids are proficient with clubs, daggers, darts, javelins, maces, quarterstaffs, scimitars, sickles, slings, and spears — plus the scimitar as their only martial weapon. Note: druids won't wear armor or use shields made of metal (a class restriction), but there is no rule against metal weapons." />
+    </Sec>
+    <Sec title="Beast-Form Attacks (Wild Shape)">
+      <div className="note">See the Wild Shape section in Features for full stat blocks — CR-1 forms unlock at level 2, CR-2 at level 6. Beast attacks use the beast's own listed attack bonus & damage, not your own STR/DEX.</div>
+    </Sec>
+  </>);
+}
+function WizardWeapons(){
+  return (<>
+    <Sec title="Wizard Weapon Proficiencies">
+      <WeaponTable rows={wizardWeapons} atkFormula="d20 + STR (Quarterstaff/Crossbow) or DEX (Dagger/Dart/Sling, or finesse choice) + prof" dmgFormula="weapon die + same modifier" note="Wizards get only these five weapons — far fewer than the other classes on this sheet — because the class expects you to fight with spells, not steel. Most wizards keep a dagger for emergencies and otherwise never swing a weapon in anger." />
+    </Sec>
+    <Sec title="Why So Few Weapons?">
+      <div className="note">Unlike Bard/Cleric/Druid (all simple weapons) or Monk (simple + shortsword), Wizards are only proficient with the five weapons above. Picking up any other weapon still lets you attack with it, but you won't add your proficiency bonus unless a feat, race, or feature says otherwise — a real trap for new players who reach for a found longsword.</div>
+    </Sec>
+  </>);
+}
+/* --- Elemental Disciplines (Four Elements) — verified vs PHB ---
+   [name, ki cost, level gate, full effect] */
+const DISCIPLINES = [
+  ["Elemental Attunement","Free","3rd",<>Action. Minor elemental utility within 30 ft: sensory effect, light/snuff a small flame, chill/warm 1 lb of material 1 hr, or shape a 1-ft cube of earth/fire/water/mist for 1 min. Always known, no ki.</>],
+  ["Fangs of the Fire Snake","1 ki (+1 ki)","3rd",<>When you take the <b>Attack action</b>, spend 1 ki: your unarmed reach increases by <Roll>10 ft</Roll> for the turn and hits deal <b>fire</b> instead of bludgeoning. Spend 1 more ki when an attack hits to add <Roll>1d10</Roll> fire damage. <b>The only discipline that doesn't eat your Action</b> — so you keep Martial Arts/Flurry.</>],
+  ["Fist of Unbroken Air","2 ki (+1 ki)","3rd",<>Action, 30 ft. Target makes a <Roll>STR save vs Ki DC</Roll>: on a fail, <Roll>3d10</Roll> bludgeoning (+<Roll>1d10</Roll> per extra ki), pushed up to 20 ft and knocked prone. Half damage, no push/prone on a success.</>],
+  ["Water Whip","2 ki (+1 ki)","3rd",<>Action, 30 ft. Target makes a <Roll>DEX save vs Ki DC</Roll>: on a fail, <Roll>3d10</Roll> bludgeoning (+<Roll>1d10</Roll> per extra ki), and you either knock it prone <i>or</i> pull it up to 25 ft toward you. Half damage, no move/prone on a success. Great for dragging ranged enemies into melee.</>],
+  ["Sweeping Cinder Strike","2 ki","3rd",<>Cast <b>Burning Hands</b> — 15-ft cone, <Roll>DEX save</Roll>, <Roll>3d6</Roll> fire (half on success). Upcast +1d6 per extra ki at 5th level+.</>],
+  ["Fist of Four Thunders","2 ki","3rd",<>Cast <b>Thunderwave</b> — 15-ft cube, <Roll>CON save</Roll>, <Roll>2d8</Roll> thunder + pushed 10 ft (half, no push on success). Upcast +1d8 per extra ki at 5th+.</>],
+  ["Rush of the Gale Spirits","2 ki","3rd",<>Cast <b>Gust of Wind</b> — 60-ft line, <Roll>STR save</Roll> or pushed 15 ft; disperses gas and snuffs small flames. Concentration.</>],
+  ["Shape the Flowing River","1 ki","3rd",<>Action, 120 ft. Freeze/thaw and reshape a 30-ft area of ice or water — raise/lower elevation, dig a trench, raise a wall or pillar (max change = half the area's largest dimension). Can't trap or injure a creature. Utility/terrain control.</>],
+  ["Clench of the North Wind","3 ki","6th",<>Cast <b>Hold Person</b> — one Humanoid, <Roll>WIS save vs Ki DC</Roll> or paralyzed (re-saves each turn). Paralyzed means auto-crits from melee — pairs brutally with your own Flurry next turn.</>],
+  ["Gong of the Summit","3 ki","6th",<>Cast <b>Shatter</b> — 10-ft radius, <Roll>CON save</Roll>, <Roll>3d8</Roll> thunder (half on success). Upcast +1d8 per extra ki.</>],
+  ["Flames of the Phoenix","4 ki","11th",<>Cast <b>Fireball</b> (<Roll>8d6</Roll>). Outside this sheet's 1–7 range — listed for planning.</>],
+  ["Mist Stance","4 ki","11th",<>Cast <b>Gaseous Form</b> on yourself. Outside 1–7 range.</>],
+  ["Ride the Wind","4 ki","11th",<>Cast <b>Fly</b> on yourself. Outside 1–7 range — widely considered the best discipline in the subclass.</>],
+  ["Breath of Winter","6 ki","17th",<>Cast <b>Cone of Cold</b>. Outside 1–7 range.</>],
+  ["Eternal Mountain Defense","5 ki","17th",<>Cast <b>Stoneskin</b> on yourself. Outside 1–7 range.</>],
+  ["River of Hungry Flame","5 ki","17th",<>Cast <b>Wall of Fire</b>. Outside 1–7 range.</>],
+  ["Wave of Rolling Earth","6 ki","17th",<>Cast <b>Wall of Stone</b>. Outside 1–7 range.</>],
+];
+function DisciplineTable({lv}){
+  const gate = d => parseInt(d[2]);
+  const avail = DISCIPLINES.filter(d=>gate(d)<=lv);
+  const later = DISCIPLINES.filter(d=>gate(d)>lv);
+  const rows = arr => (
+    <table className="rtable"><thead><tr><th style={{width:'20%'}}>Discipline</th><th style={{width:'12%'}}>Ki Cost</th><th style={{width:'8%'}}>Level</th><th>Effect &amp; Rolls</th></tr></thead>
+    <tbody>{arr.map((d,i)=>(<tr key={i}><td className="nm" data-label="Discipline">{d[0]}</td><td data-label="Ki Cost"><span className="ki">{d[1]}</span></td><td data-label="Level">{d[2]}</td><td data-label="Effect">{d[3]}</td></tr>))}</tbody></table>
+  );
+  return (<>
+    <Sec title={`Elemental Disciplines — available to you at level ${lv}`}>
+      <div className="note" style={{marginBottom:'8px'}}>You know <b>Elemental Attunement</b> plus <b>{lv>=6?'two':'one'}</b> other discipline{lv>=6?'s':''} of your choice from this list (1 chosen at L3{lv>=6?', 1 more at L6':''}). Saves use your <b>Ki save DC</b>. Upcasting caps at <b>3 total ki per spell</b> at levels 5–8.</div>
+      {rows(avail)}
+    </Sec>
+    {later.length>0 && (
+      <Sec title="Disciplines unlocked at higher levels (for planning)">
+        {rows(later)}
+      </Sec>
+    )}
+  </>);
+}
+
+function MonkWeaponsPanel(sub){
+  const extra = sub==='shadow'
+    ? "Shadow Monk grants no extra weapon proficiencies — your subclass power is Shadow Arts and Shadow Step, so most Shadow monks fight unarmed or with a shortsword/dagger and lean on Stealth."
+    : "Way of the Four Elements grants no extra weapon proficiencies — your subclass power is elemental disciplines. Note that Fangs of the Fire Snake converts your unarmed strikes to fire damage and extends their reach by 10 ft.";
+  return (<>
+    <Sec title="Standard Monk Weapons">
+      <WeaponTable rows={monkWeapons} atkFormula="d20 + STR or DEX (your choice) + prof" dmgFormula="Martial Arts die OR the weapon's own die, whichever is higher, + same modifier" note={extra} />
+    </Sec>
+  </>);
+}
+
+/* ============================================================
+   UNIVERSAL COMBAT ACTIONS — class-agnostic table reference
+   Verified vs 2014 PHB ch. 9 / SRD 5.1
+============================================================ */
+const ACTIONS_IN_COMBAT = [
+  ["Attack","Action",<>Make one melee or ranged attack (more with Extra Attack). You can move part of your speed before and the rest after, splitting movement around the attack.</>],
+  ["Cast a Spell","Action / Bonus / Reaction",<>Uses the spell's listed casting time. You can cast <b>one</b> spell using a bonus action only if your one action that turn is used to cast a cantrip (or a spell) — i.e. no two leveled slots on the same turn if one is a bonus action.</>],
+  ["Dash","Action",<>Gain extra movement equal to your speed for the turn (after modifiers). Doubles your movement.</>],
+  ["Disengage","Action",<>Your movement doesn't provoke opportunity attacks for the rest of the turn.</>],
+  ["Dodge","Action",<>Until your next turn: attackers have <b>disadvantage</b> if they can see you, and you make DEX saves with advantage. Lost if incapacitated or speed 0.</>],
+  ["Help","Action",<>Give an ally <b>advantage</b> on their next ability check (a task you could help with), OR on their next attack against a creature within 5 ft of you (before your next turn).</>],
+  ["Hide","Action",<>Make a <Roll>DEX (Stealth) check</Roll> vs passive Perception. You must be out of clear line of sight. Success lets you attack from hiding with advantage (revealing you).</>],
+  ["Ready","Action",<>Pick a trigger and a response (an action or move). When the trigger occurs before your next turn, use your <b>reaction</b> to act. A readied spell requires concentration while you hold it.</>],
+  ["Search","Action",<>Make a <Roll>WIS (Perception)</Roll> or <Roll>INT (Investigation)</Roll> check to find something.</>],
+  ["Use an Object","Action",<>Interact with a second object (the first is free), or use an object that needs an action (e.g. a healing potion given to someone else).</>],
+  ["Improvise","Action",<>Attempt anything not covered above — the DM adjudicates.</>],
+];
+const BONUS_REACTION = [
+  ["Object interaction","Free (1/turn)",<>Draw/sheathe a weapon, open an unlocked door, pick up an item, etc. One free interaction per turn; a second one costs your action (Use an Object).</>],
+  ["Opportunity Attack","Reaction",<>Triggered when a creature you can see leaves your reach (5 ft) using its move. One melee attack; using Disengage avoids provoking it.</>],
+  ["Two-Weapon Fighting","Bonus Action",<>If you Attack with a <b>light</b> melee weapon in one hand, use a bonus action to attack with a different light melee weapon in the other. <b>No ability modifier to that damage</b> unless it's negative.</>],
+];
+const CONDITIONS_QUICK = [
+  ["Prone","Disadvantage on attacks; melee attackers within 5 ft have advantage vs you, ranged attackers have disadvantage. Costs half your movement to stand up."],
+  ["Grappled","Speed 0. Ends if the grappler is incapacitated or you're moved out of reach. Escape: contested STR(Athletics)/DEX(Acrobatics) vs grappler's STR(Athletics)."],
+  ["Restrained","Speed 0; attacks against you have advantage; your attacks have disadvantage; disadvantage on DEX saves."],
+  ["Frightened","Disadvantage on ability checks & attacks while the source is in line of sight; can't willingly move closer to it."],
+  ["Poisoned","Disadvantage on attack rolls and ability checks."],
+  ["Blinded","Can't see; auto-fail sight checks; your attacks have disadvantage, attacks against you have advantage."],
+  ["Stunned","Incapacitated (no actions/reactions), can't move, auto-fail STR & DEX saves, attacks against you have advantage."],
+  ["Paralyzed","As Stunned, plus: any attack that hits you from within 5 ft is a critical hit."],
+  ["Incapacitated","Can't take actions or reactions (a component of many worse conditions)."],
+  ["Unconscious","Incapacitated, prone, drop everything, auto-fail STR/DEX saves; melee hits within 5 ft auto-crit."],
+];
+function UniversalCombat(){
+  return (<>
+    <Sec title="Actions in Combat — anyone can take these">
+      <table className="rtable"><thead><tr><th style={{width:'18%'}}>Action</th><th style={{width:'18%'}}>Cost</th><th>What It Does</th></tr></thead>
+        <tbody>{ACTIONS_IN_COMBAT.map((r,i)=>(<tr key={i}><td className="nm" data-label="Action">{r[0]}</td><td data-label="Cost">{r[1]}</td><td data-label="Effect">{r[2]}</td></tr>))}</tbody></table>
+    </Sec>
+    <Sec title="Bonus Actions, Reactions &amp; Free Interactions">
+      <table className="rtable"><thead><tr><th style={{width:'22%'}}>Thing</th><th style={{width:'16%'}}>Type</th><th>What It Does</th></tr></thead>
+        <tbody>{BONUS_REACTION.map((r,i)=>(<tr key={i}><td className="nm" data-label="Thing">{r[0]}</td><td data-label="Type">{r[1]}</td><td data-label="Effect">{r[2]}</td></tr>))}</tbody></table>
+    </Sec>
+    <Sec title="Grapple &amp; Shove — the special melee options">
+      <div className="actcard">
+        <p><b>Instead of a melee attack</b> (so one of your Attack-action attacks), you can try to Grapple or Shove a creature no more than one size larger than you:</p>
+        <ul>
+          <li><b>Grapple:</b> contested <Roll>your STR (Athletics)</Roll> vs the target's <Roll>STR (Athletics) or DEX (Acrobatics)</Roll> (their choice). On a win, its speed becomes 0.</li>
+          <li><b>Shove:</b> same contest — on a win, push it 5 ft away <i>or</i> knock it prone (your choice).</li>
+        </ul>
+      </div>
+    </Sec>
+    <Sec title="Cover">
+      <div className="dcbar">
+        <div className="dcitem"><div className="lbl">Half Cover</div><div className="val">+2 AC &amp; DEX saves</div><div className="sub">low wall, furniture, another creature</div></div>
+        <div className="dcdivider"></div>
+        <div className="dcitem"><div className="lbl">Three-Quarters</div><div className="val">+5 AC &amp; DEX saves</div><div className="sub">arrow slit, thick tree trunk</div></div>
+        <div className="dcdivider"></div>
+        <div className="dcitem"><div className="lbl">Total Cover</div><div className="val">Can't be targeted</div><div className="sub">fully blocked — no direct attack/spell</div></div>
+      </div>
+    </Sec>
+    <Sec title="Death &amp; Dying">
+      <div className="actcard">
+        <ul>
+          <li><b>0 HP:</b> you fall unconscious (unless a rule says otherwise).</li>
+          <li><b>Death saves:</b> at the start of each turn at 0 HP, roll a <Roll>d20</Roll> (no modifiers). <b>10+</b> = success, <b>9 or less</b> = failure. <b>3 successes</b> = stable; <b>3 failures</b> = dead. Nat 20 = regain 1 HP; nat 1 = two failures.</li>
+          <li><b>Taking damage at 0 HP:</b> one automatic death-save failure (two if it's a critical hit or melee within 5 ft).</li>
+          <li><b>Massive damage:</b> if damage that drops you to 0 also equals/exceeds your HP maximum on top of that, you die outright.</li>
+          <li><b>Stabilizing:</b> a DC 10 WIS (Medicine) check, a Healer's Kit use, or any healing brings you back (any healing sets you to that many HP and wakes you).</li>
+        </ul>
+      </div>
+    </Sec>
+    <Sec title="Conditions — fast reference">
+      <table className="rtable"><thead><tr><th style={{width:'20%'}}>Condition</th><th>Effect</th></tr></thead>
+        <tbody>{CONDITIONS_QUICK.map((r,i)=>(<tr key={i}><td className="nm" data-label="Condition">{r[0]}</td><td data-label="Effect">{r[1]}</td></tr>))}</tbody></table>
+      <div className="note">Exhaustion (6 levels, cumulative) isn't shown here — it's rare in standard combat. Charmed/Deafened/Invisible/Petrified omitted for space; ask if you want the full set added.</div>
+    </Sec>
+    <Sec title="A Few Rules People Forget">
+      <div className="actcard">
+        <ul>
+          <li><b>One leveled spell + one cantrip max per turn</b> if the leveled spell is a bonus action. You can't cast two leveled spells in a turn that way.</li>
+          <li><b>Advantage/disadvantage don't stack</b> — you either have it or you don't, and if you have both, they cancel to a straight roll.</li>
+          <li><b>Critical hits</b> double the <i>dice</i> only, not flat modifiers (roll 2× weapon/spell dice, then add mods once).</li>
+          <li><b>Concentration:</b> one concentration spell at a time; taking damage forces a <Roll>CON save, DC 10 or half the damage, whichever is higher</Roll>.</li>
+          <li><b>Standing from prone</b> costs half your movement — it doesn't cost an action.</li>
+          <li><b>Long rest</b> restores all HP and half your total Hit Dice; you can't benefit from more than one per 24 hours.</li>
+        </ul>
+      </div>
+    </Sec>
+  </>);
+}
+
+/* ============================================================
+   MASTER REFERENCE — everything, every class, one place
+============================================================ */
+const QUICK_MATH = [
+  ["Lore Bard","CHA","Bardic Inspiration d6→d8@L5 · Cutting Words = same die · Jack of All Trades = +½ prof to non-proficient checks"],
+  ["Shadow Monk","DEX (or STR)","Ki DC = 8+prof+WIS · Shadow Arts 2 ki (L3) · Shadow Step FREE bonus-action 60-ft teleport (L6) · Martial Arts d4→d6@L5"],
+  ["4 Elements Monk","DEX (or STR)","Ki DC = 8+prof+WIS · Disciplines cost 1–4 ki · Discipline save DC = Ki DC · Martial Arts d4→d6@L5"],
+  ["Life Cleric","WIS","Disciple of Life = +2+slot lvl on all healing · Preserve Life pool = 5×level · Channel DC = 8+prof+WIS"],
+  ["Moon Druid","WIS","Wild Shape CR 1@L2, CR 2@L6 · Combat Wild Shape heal = 1d8×slot level (bonus action) · Primal Strike (magic dmg) @L5"],
+  ["Evocation Wizard","INT","Sculpt Spells = 1+spell lvl allies auto-succeed & no dmg @L2 · Potent Cantrip (half dmg on save) @L6 · Arcane Recovery = ½ level slots, 1/day"],
+];
+function QuickMath(){
+  return (<>
+    <Sec title="Spell Save DC &amp; Attack Roll — both prof tiers">
+      <div className="dcbar">
+        <div className="dcitem"><div className="lbl">Levels 1–4 (prof +2)</div><div className="val">DC 10 + stat mod</div><div className="sub">Attack: d20 +2 + stat mod</div></div>
+        <div className="dcdivider"></div>
+        <div className="dcitem"><div className="lbl">Levels 5–7 (prof +3)</div><div className="val">DC 11 + stat mod</div><div className="sub">Attack: d20 +3 + stat mod</div></div>
+      </div>
+      <div className="note">Key stat by class — Bard: CHA · Cleric: WIS · Druid: WIS · Wizard: INT · Shadow / 4 Elements Monk (Ki DC): WIS.</div>
+    </Sec>
+    <Sec title="Quick Combat Math — every class at a glance">
+      <table className="rtable"><thead><tr><th style={{width:'16%'}}>Class</th><th style={{width:'12%'}}>Key Stat</th><th>Core Formulas</th></tr></thead>
+      <tbody>{QUICK_MATH.map((r,i)=>(<tr key={i}><td className="nm" data-label="Class">{r[0]}</td><td data-label="Key Stat">{r[1]}</td><td data-label="Formulas">{r[2]}</td></tr>))}</tbody></table>
+    </Sec>
+  </>);
+}
+function StarBar({onlyStarred, setOnlyStarred, scopeLabel}){
+  const {stars, clearAll} = useStars();
+  const n = stars.size;
+  return (
+    <div className="starbar">
+      <span className="lbl">★ Starred</span>
+      <span className="cnt">{n}</span>
+      <span className="note" style={{margin:0, flex:'1 1 140px'}}>
+        {n===0 ? "Tap the ☆ next to any spell to pin it here — stars persist across tabs and sessions."
+               : `Showing ${scopeLabel}. Starred spells stay marked everywhere they appear.`}
+      </span>
+      <button onClick={()=>setOnlyStarred(!onlyStarred)}>{onlyStarred?"Show all":"Starred only"}</button>
+      {n>0 && <button onClick={()=>{ if(confirm("Clear all "+n+" starred spells?")) clearAll(); }}>Clear</button>}
+    </div>
+  );
+}
+function keepStarred(rows, stars, only){
+  return only ? rows.filter(r=>stars.has(spellId(r))) : rows;
+}
+
+const SPELL_GROUPS = [
+  {cls:"bard",  icon:"🎵", who:"Lore Bard",        lvl:"Cantrips",  rows:()=>bardCant},
+  {cls:"bard",  icon:"🎵", who:"Lore Bard",        lvl:"1st Level", rows:()=>bard1},
+  {cls:"bard",  icon:"🎵", who:"Lore Bard",        lvl:"2nd Level", rows:()=>bard2},
+  {cls:"bard",  icon:"🎵", who:"Lore Bard",        lvl:"3rd Level", rows:()=>bard3},
+  {cls:"bard",  icon:"🎵", who:"Lore Bard",        lvl:"4th Level", rows:()=>bard4},
+  {cls:"cleric",icon:"✚",  who:"Life Cleric",      lvl:"Cantrips",  rows:()=>clrCant},
+  {cls:"cleric",icon:"✚",  who:"Life Cleric",      lvl:"1st Level", rows:()=>clr1},
+  {cls:"cleric",icon:"✚",  who:"Life Cleric",      lvl:"2nd Level", rows:()=>clr2},
+  {cls:"cleric",icon:"✚",  who:"Life Cleric",      lvl:"3rd Level", rows:()=>clr3},
+  {cls:"cleric",icon:"✚",  who:"Life Cleric",      lvl:"4th Level", rows:()=>clr4},
+  {cls:"druid", icon:"🌙", who:"Moon Druid",       lvl:"Cantrips",  rows:()=>druCant},
+  {cls:"druid", icon:"🌙", who:"Moon Druid",       lvl:"1st Level", rows:()=>dru1},
+  {cls:"druid", icon:"🌙", who:"Moon Druid",       lvl:"2nd Level", rows:()=>dru2},
+  {cls:"druid", icon:"🌙", who:"Moon Druid",       lvl:"3rd Level", rows:()=>dru3},
+  {cls:"druid", icon:"🌙", who:"Moon Druid",       lvl:"4th Level", rows:()=>dru4},
+  {cls:"wizard",icon:"🔥", who:"Evocation Wizard", lvl:"Cantrips",  rows:()=>wizCant},
+  {cls:"wizard",icon:"🔥", who:"Evocation Wizard", lvl:"1st Level", rows:()=>wiz1},
+  {cls:"wizard",icon:"🔥", who:"Evocation Wizard", lvl:"2nd Level", rows:()=>wiz2},
+  {cls:"wizard",icon:"🔥", who:"Evocation Wizard", lvl:"3rd Level", rows:()=>wiz3},
+  {cls:"wizard",icon:"🔥", who:"Evocation Wizard", lvl:"4th Level", rows:()=>wiz4},
+];
+const SPELL_CLASS_CHIPS = [
+  {id:"all",   label:"All"},
+  {id:"bard",  label:"🎵 Bard"},
+  {id:"cleric",label:"✚ Cleric"},
+  {id:"druid", label:"🌙 Druid"},
+  {id:"wizard",label:"🔥 Wizard"},
+];
+function MasterSpells(){
+  const [q, setQ] = useState("");
+  const [who, setWho] = useState("all");
+  const [onlyStarred, setOnlyStarred] = useState(false);
+  const {stars} = useStars();
+  const groups = SPELL_GROUPS
+    .filter(g => who==="all" || g.cls===who)
+    .map(g => ({...g, filtered: keepStarred(filterRows(g.rows(), q), stars, onlyStarred)}))
+    .filter(g => g.filtered.length>0);
+  const total = SPELL_GROUPS.reduce((n,g)=>n+g.rows().length, 0);
+  const shown = groups.reduce((n,g)=>n+g.filtered.length, 0);
+  const searching = q.trim().length>0;
+  return (<>
+    <SearchBox
+      value={q} onChange={setQ}
+      placeholder="Search all spells — name, damage, save type…"
+      count={shown} total={total}
+    />
+    <div className="chiprow">
+      {SPELL_CLASS_CHIPS.map(c=>(
+        <button key={c.id} className={"chip"+(who===c.id?" on":"")} onClick={()=>setWho(c.id)}>{c.label}</button>
+      ))}
+    </div>
+    <StarBar onlyStarred={onlyStarred} setOnlyStarred={setOnlyStarred} scopeLabel={onlyStarred?"starred spells only":"all spells"}/>
+    {!searching && who==="all" && !onlyStarred && <QuickMath/>}
+    {groups.length===0 ? (
+      <div className="emptymsg">{onlyStarred && !searching
+        ? <>No starred spells yet — tap the ☆ beside any spell to pin it here.</>
+        : <>No spells match “{q}”. Try a single word like <b>fire</b>, <b>heal</b>, <b>save</b>, or <b>bonus</b>.</>}</div>
+    ) : groups.map((g,i)=>(
+      <Sec key={i} title={`${g.icon} ${g.who} — ${g.lvl}`}>
+        <SpellTable rows={g.filtered}/>
+      </Sec>
+    ))}
+    {!searching && who==="all" && !onlyStarred && (
+      <Sec title="🐻 Moon Druid — Wild Shape Forms">
+        <div className="note" style={{marginBottom:'6px'}}>CR 1 forms (Wild Shape unlocked, druid level 2+):</div>
+        {beastRowsTable(moonForms[2])}
+        <div className="note" style={{margin:'10px 0 6px'}}>CR 2 forms (Circle Forms, druid level 6+):</div>
+        {beastRowsTable(moonForms[6])}
+      </Sec>
+    )}
+    {legend}
+  </>);
+}
+function beastRowsTable(set){
+  return <table className="rtable"><thead><tr><th style={{width:'20%'}}>Beast</th><th style={{width:'30%'}}>Stat Block</th><th>Attacks (full rolls)</th></tr></thead>
+  <tbody>{set.map((r,i)=><tr key={i}><td className="nm" data-label="Beast">{r[0]}</td><td data-label="Stat Block">{r[1]}</td><td data-label="Attacks">{r[2]}</td></tr>)}</tbody></table>;
+}
+
+// Build a "used by" tag map for every weapon across all class lists
+function buildWeaponUsers(){
+  const usedBy = {};
+  const mark = (rows, tag) => rows.forEach(r => { const n=r[0]; usedBy[n]=usedBy[n]||new Set(); usedBy[n].add(tag); });
+  mark(simpleMelee.concat(simpleRanged), "Bard");
+  mark(bardMartial, "Bard");
+  mark(clericWeapons, "Cleric");
+  mark(druidWeapons, "Druid");
+  mark(monkWeapons, "Monk (both)");
+  mark(wizardWeapons, "Wizard");
+  return usedBy;
+}
+const MOD_BY_WEAPON_TYPE = [
+  ["Normal melee weapon","STR","Mace, longsword, spear, greatclub, etc. — anything melee without the Finesse tag."],
+  ["Ranged weapon","DEX","Shortbow, hand crossbow, sling, longbow — anything you throw or shoot."],
+  ["Finesse weapon","STR or DEX (your choice, whichever is higher)","Dagger, rapier, shortsword, scimitar. Use the SAME ability for both the attack roll and the damage roll — no mixing."],
+  ["Monk weapon (unarmed or shortsword/simple melee)","STR or DEX (your choice)","Same finesse-style choice, PLUS: compare your Martial Arts die to the weapon's own die and use whichever is bigger."],
+  ["Shillelagh'd club/quarterstaff (Druid)","WIS","Overrides the normal STR rule entirely — attack AND damage both use WIS, and damage die is forced to 1d8."],
+];
+function WeaponAttackExplainer(){
+  return (<>
+    <Sec title="How Any Weapon Attack Works — Step by Step">
+      <div className="actcard">
+        <p><b>Every weapon attack, no matter the class, breaks into two rolls:</b></p>
+        <div className="dcbar" style={{marginTop:'10px'}}>
+          <div className="dcitem"><div className="lbl">Step 1 — Attack Roll</div><div className="val">d20 + mod + prof</div><div className="sub">prof only if you're proficient with that weapon</div></div>
+          <div className="dcdivider"></div>
+          <div className="dcitem"><div className="lbl">Step 2 — Damage Roll (on a hit)</div><div className="val">weapon die + mod</div><div className="sub">same ability mod as the attack roll</div></div>
+        </div>
+        <p style={{marginTop:'10px'}}>The only thing that changes weapon to weapon or class to class is <b>which ability modifier</b> you're allowed to plug in. That's the table below.</p>
+      </div>
+    </Sec>
+    <Sec title="Which Ability Modifier Do I Use?">
+      <table className="rtable"><thead><tr><th style={{width:'26%'}}>Weapon Type</th><th style={{width:'20%'}}>Modifier</th><th>Notes</th></tr></thead>
+      <tbody>{MOD_BY_WEAPON_TYPE.map((r,i)=>(<tr key={i}><td className="nm" data-label="Weapon Type">{r[0]}</td><td data-label="Modifier"><Roll>{r[1]}</Roll></td><td data-label="Notes">{r[2]}</td></tr>))}</tbody></table>
+      <div className="note">Unarmed strikes follow the "Monk weapon" row — 1d4 (1d6 at level 5+) + STR or DEX, your choice, same ability for both rolls.</div>
+    </Sec>
+  </>);
+}
+
+/* ============================================================
+   SHOP / PRICE LIST — verified vs PHB & SRD 5.1
+   [item, cost, weight, what it does / why buy it]
+============================================================ */
+const SHOP_ESSENTIALS = [
+  ["Potion of Healing","50 gp","½ lb",<>Action to drink or administer: regain <Roll>2d4 + 2</Roll> HP. <b>The single most important purchase at low level</b> — buy one per character before every dungeon.</>],
+  ["Healer's Kit","5 gp","3 lb",<>10 uses. Action to stabilize a creature at 0 HP <b>with no Medicine check needed</b>. Cheapest life-insurance in the game; someone in the party should always have one.</>],
+  ["Rope, hempen (50 ft)","1 gp","10 lb",<>2 HP, bursts on a DC 17 STR check. Solves more low-level problems than most spells.</>],
+  ["Torch","1 cp","1 lb",<>Bright light 20 ft / dim 20 ft for 1 hr. Melee hit with a lit one deals <Roll>1 fire</Roll>.</>],
+  ["Tinderbox","5 sp","1 lb",<>Lights a torch as an action; any other fire takes 1 minute.</>],
+  ["Rations (1 day)","5 sp","2 lb",<>Dry travel food. Buy in bulk for overland travel.</>],
+  ["Waterskin","2 sp","5 lb full",<>Holds 4 pints. Dehydration rules bite in desert/travel campaigns.</>],
+  ["Bedroll","1 gp","7 lb",<>Standard for long rests outdoors.</>],
+  ["Backpack","2 gp","5 lb",<>Holds 1 cubic ft / 30 lb of gear.</>],
+  ["Crowbar","2 gp","5 lb",<><b>Advantage on STR checks</b> where leverage applies — prying doors, crates, portcullises.</>],
+];
+const SHOP_COMBAT = [
+  ["Alchemist's Fire (flask)","50 gp","1 lb",<>Thrown 20 ft, ranged attack (improvised). On hit: <Roll>1d4</Roll> fire at the <b>start of each of the target's turns</b> until it uses an action for a DC 10 DEX check to douse. Great vs regenerating trolls.</>],
+  ["Acid (vial)","25 gp","1 lb",<>Thrown 20 ft, ranged attack. On hit: <Roll>2d6</Roll> acid damage. Also melts objects/locks with DM permission.</>],
+  ["Holy Water (flask)","25 gp","1 lb",<>Thrown 20 ft, ranged attack. <Roll>2d6</Roll> radiant — <b>only</b> vs fiends and undead. Situational but devastating in an undead campaign.</>],
+  ["Oil (flask)","1 sp","1 lb",<>Thrown 20 ft: target is coated; next fire damage it takes adds <Roll>5 fire</Roll>. Or pour on the ground and ignite: <Roll>5 fire</Roll> to anyone entering/ending there, burns 2 rounds. Absurd value for 1 silver.</>],
+  ["Caltrops (bag of 20)","1 gp","2 lb",<>Action to spread over a 5-ft square. Entering creature: <Roll>DC 15 DEX save</Roll> or stop moving, take <Roll>1 piercing</Roll>, and speed −10 ft until healed.</>],
+  ["Ball Bearings (bag of 1,000)","1 gp","2 lb",<>Action to spread over a 10-ft square. Creatures crossing: <Roll>DC 10 DEX save</Roll> or fall prone. Classic escape tool.</>],
+  ["Hunting Trap","5 gp","25 lb",<>Action to set. <Roll>DC 13 DEX save</Roll> or <Roll>1d4</Roll> piercing and movement halted; DC 13 STR check to escape.</>],
+  ["Poison, basic (vial)","100 gp","—",<>Coats one weapon or 3 pieces of ammo. Target: <Roll>DC 10 CON save</Roll> or <Roll>1d4</Roll> poison. Potency lasts 1 min after applying. Expensive for the effect — check your table's stance on poison use.</>],
+  ["Antitoxin (vial)","50 gp","—",<>Advantage on saves vs poison for 1 hour. Buy before a known spider/serpent delve.</>],
+];
+const SHOP_ARMOR = [
+  ["Padded","5 gp","8 lb",<>AC <Roll>11 + DEX</Roll>. <b>Disadvantage on Stealth</b> — almost always skip in favor of leather.</>],
+  ["Leather","10 gp","10 lb",<>AC <Roll>11 + DEX</Roll>, no Stealth penalty. The budget light-armor default.</>],
+  ["Studded Leather","45 gp","13 lb",<>AC <Roll>12 + DEX</Roll>, no Stealth penalty. <b>Best light armor in the game</b> — a top-priority upgrade for any DEX build.</>],
+  ["Hide","10 gp","12 lb",<>AC <Roll>12 + DEX (max 2)</Roll>.</>],
+  ["Chain Shirt","50 gp","20 lb",<>AC <Roll>13 + DEX (max 2)</Roll>, no Stealth penalty.</>],
+  ["Scale Mail","50 gp","45 lb",<>AC <Roll>14 + DEX (max 2)</Roll>, <b>Disadvantage on Stealth</b>.</>],
+  ["Ring Mail","30 gp","40 lb",<>AC <Roll>14</Roll> flat, Disadvantage on Stealth. Cheap heavy armor for a low-DEX character.</>],
+  ["Chain Mail","75 gp","55 lb",<>AC <Roll>16</Roll> flat. Requires <b>STR 13</b> or speed −10 ft. Disadvantage on Stealth. The realistic heavy-armor goal at low levels.</>],
+  ["Shield","10 gp","6 lb",<><Roll>+2 AC</Roll>. Action to don/doff. Cheapest AC in the game — grab one unless you need both hands.</>],
+  ["Breastplate","400 gp","20 lb",<>AC <Roll>14 + DEX (max 2)</Roll>, no Stealth penalty. Usually out of reach until mid levels.</>],
+];
+const SHOP_FOCI = [
+  ["Component Pouch","25 gp","2 lb",<>Covers every material component <b>without</b> a listed gp cost. Works for any caster.</>],
+  ["Arcane Focus — Staff","5 gp","4 lb",<>Cheapest arcane focus (Wizard). Also usable as a quarterstaff.</>],
+  ["Arcane Focus — Crystal / Rod / Wand","10 gp","1–2 lb",<>Wizard focus alternatives.</>],
+  ["Arcane Focus — Orb","20 gp","3 lb",<>Priciest arcane focus.</>],
+  ["Druidic Focus — Sprig of mistletoe / Totem","1 gp","—",<>Cheapest focus in the game (Druid).</>],
+  ["Druidic Focus — Wooden staff","5 gp","4 lb",<>Druid focus; doubles as a quarterstaff for Shillelagh.</>],
+  ["Holy Symbol — Amulet / Emblem / Reliquary","5 gp","0–2 lb",<>Cleric focus. Must be held, worn visibly, or borne on a shield.</>],
+  ["Spellbook","50 gp","3 lb",<>100 blank vellum pages. <b>Wizards only</b> — buy a spare; losing your only spellbook is campaign-ending.</>],
+];
+const SHOP_UTILITY = [
+  ["Thieves' Tools","25 gp","1 lb",<>Required to pick locks (DC 15 DEX) and disarm traps. Party essential if you have a rogue or anyone proficient.</>],
+  ["Lantern, Hooded","5 gp","2 lb",<>Bright 30 ft / dim 30 ft, 6 hrs per oil flask. Action to hood down to dim 5 ft. Better than torches for a party.</>],
+  ["Lantern, Bullseye","10 gp","2 lb",<>Bright 60-ft <b>cone</b> / dim 60 ft. Directional — good for scouting corridors.</>],
+  ["Climber's Kit","25 gp","12 lb",<>Anchor yourself as an action: can't fall more than 25 ft from the anchor point.</>],
+  ["Grappling Hook","2 gp","4 lb",<>Pairs with rope for climbing and crossing gaps.</>],
+  ["Manacles","2 gp","6 lb",<>Bind a Small/Medium creature. DC 20 DEX to slip, DC 20 STR to break, DC 15 with thieves' tools. For taking prisoners.</>],
+  ["Mirror, steel","5 gp","½ lb",<>Look around corners, check for medusas, signal allies. Punches above its price.</>],
+  ["10-foot Pole","5 cp","7 lb",<>The original trap detector. Costs almost nothing.</>],
+  ["Chalk (1 piece)","1 cp","—",<>Map dungeon walls so you don't get lost.</>],
+  ["Piton (each)","5 cp","¼ lb",<>Hammer into walls for climbing anchors and to spike doors shut.</>],
+  ["Hammer","1 gp","3 lb",<>Drive pitons and spikes.</>],
+  ["Iron Spikes (10)","1 gp","5 lb",<>Wedge doors shut to stop pursuit — a classic dungeon-delving trick.</>],
+  ["Signal Whistle","5 cp","—",<>Coordinate a split party.</>],
+  ["Rope, silk (50 ft)","10 gp","5 lb",<>Half the weight of hempen rope, same 2 HP / DC 17 to burst.</>],
+];
+const SHOP_PACKS = [
+  ["Dungeoneer's Pack","12 gp","61½ lb",<>Backpack, crowbar, hammer, 10 pitons, 10 torches, tinderbox, 10 days rations, waterskin, 50 ft hempen rope. <b>Best value pack for a dungeon crawl.</b></>],
+  ["Explorer's Pack","10 gp","59 lb",<>Backpack, bedroll, mess kit, tinderbox, 10 torches, 10 days rations, waterskin, 50 ft hempen rope. Best for overland travel.</>],
+  ["Burglar's Pack","16 gp","44½ lb",<>Backpack, 1,000 ball bearings, 10 ft string, bell, 5 candles, crowbar, hammer, 10 pitons, hooded lantern, 2 oil flasks, 5 days rations, tinderbox, waterskin, 50 ft hempen rope.</>],
+  ["Priest's Pack","19 gp","24 lb",<>Backpack, blanket, 10 candles, tinderbox, alms box, 2 blocks incense, censer, vestments, 2 days rations, waterskin.</>],
+  ["Scholar's Pack","40 gp","10 lb",<>Backpack, book of lore, ink bottle, ink pen, 10 sheets parchment, little bag of sand, small knife.</>],
+  ["Diplomat's Pack","39 gp","39 lb",<>Chest, 2 map/scroll cases, fine clothes, ink, ink pen, lamp, 2 oil flasks, 5 sheets paper, perfume vial, sealing wax, soap.</>],
+  ["Entertainer's Pack","40 gp","38 lb",<>Backpack, bedroll, 2 costumes, 5 candles, 5 days rations, waterskin, disguise kit.</>],
+];
+const SHOP_SERVICES = [
+  ["Inn stay (per day) — Squalid","7 cp","—",<>Rough lodging. Lifestyle expense.</>],
+  ["Inn stay (per day) — Modest","5 sp","—",<>The standard adventurer's default.</>],
+  ["Inn stay (per day) — Comfortable","8 sp","—",<>Respectable lodging.</>],
+  ["Meals (per day) — Modest","3 sp","—",<>Standard fare.</>],
+  ["Ale (mug)","4 cp","—",<>Tavern staple.</>],
+  ["Wine, common (pitcher)","2 sp","—",<>—</>],
+  ["Hireling, skilled (per day)","2 gp","—",<>Guide, artisan, mercenary with a trade.</>],
+  ["Hireling, untrained (per day)","2 sp","—",<>Porters, laborers, torchbearers.</>],
+  ["Riding Horse","75 gp","—",<>Speed 60 ft, carrying capacity 480 lb.</>],
+  ["Pony","30 gp","—",<>Speed 40 ft. Budget mount, good for Small characters.</>],
+  ["Mule (draft horse)","8 gp","—",<>Speed 40 ft, capacity 420 lb. Cheapest pack animal — buy one for loot hauling.</>],
+  ["Cart","15 gp","—",<>Hauls gear and treasure.</>],
+  ["Saddle, riding","10 gp","25 lb",<>Needed to avoid falling-off checks when riding.</>],
+];
+const SHOP_SECTIONS = [
+  {id:"essentials", label:"⭐ Buy First",   title:"Essentials — buy these before anything else", rows:SHOP_ESSENTIALS,
+   note:"If your party has limited gold, this is the priority order. A Potion of Healing and a Healer's Kit have saved more low-level characters than any weapon upgrade."},
+  {id:"combat",     label:"💥 Combat",      title:"Consumables & Combat Items", rows:SHOP_COMBAT,
+   note:"All thrown items use a ranged attack roll treating them as improvised weapons — no proficiency bonus unless your DM rules otherwise. Oil at 1 sp is the best gold-to-damage ratio in the game."},
+  {id:"armor",      label:"🛡 Armor",       title:"Armor & Shields", rows:SHOP_ARMOR,
+   note:"Monks get no benefit from armor (Unarmored Defense turns off). Druids won't wear metal armor. Studded leather is the sweet spot for any DEX-based character who can afford it."},
+  {id:"foci",       label:"✨ Foci",        title:"Spellcasting Foci & Components", rows:SHOP_FOCI,
+   note:"A focus replaces material components that have no gp cost. Components WITH a listed cost (like Revivify's 300 gp diamond) must still be bought separately."},
+  {id:"utility",    label:"🔦 Utility",     title:"Utility & Exploration Gear", rows:SHOP_UTILITY,
+   note:"Cheap items that solve expensive problems. A 5 cp pole and 1 cp chalk have defeated more dungeons than most magic items."},
+  {id:"packs",      label:"🎒 Packs",       title:"Equipment Packs (bundle deals)", rows:SHOP_PACKS,
+   note:"Packs are usually cheaper than buying the contents individually. Dungeoneer's Pack is the best all-round value if you're delving."},
+  {id:"services",   label:"🏨 Services",    title:"Lodging, Hirelings & Mounts", rows:SHOP_SERVICES,
+   note:"Lifestyle costs are per day. Many DMs hand-wave these, so check before budgeting around them."},
+];
+function ShopTable({rows}){
+  return (
+    <table className="rtable"><thead><tr><th style={{width:'20%'}}>Item</th><th style={{width:'11%'}}>Cost</th><th style={{width:'10%'}}>Weight</th><th>What It Does / Why Buy It</th></tr></thead>
+    <tbody>{rows.map((r,i)=>(<tr key={i}><td className="nm" data-label="Item">{r[0]}</td><td data-label="Cost"><span className="ki">{r[1]}</span></td><td data-label="Weight">{r[2]}</td><td data-label="Details">{r[3]}</td></tr>))}</tbody></table>
+  );
+}
+function FavoritesPanel(){
+  const {stars, clearAll} = useStars();
+  const [q,setQ] = useState("");
+  // Collect every starred spell across all class lists, grouped by class+level
+  const groups = SPELL_GROUPS
+    .map(g=>({...g, filtered: filterRows(g.rows().filter(r=>stars.has(spellId(r))), q)}))
+    .filter(g=>g.filtered.length>0);
+  const totalStarred = SPELL_GROUPS.reduce((n,g)=>n+g.rows().filter(r=>stars.has(spellId(r))).length,0);
+  const shown = groups.reduce((n,g)=>n+g.filtered.length,0);
+  // A spell on multiple class lists counts once for the "unique" tally
+  const uniqueNames = new Set();
+  SPELL_GROUPS.forEach(g=>g.rows().forEach(r=>{ if(stars.has(spellId(r))) uniqueNames.add(nodeText(r[0]).trim()); }));
+
+  if(stars.size===0){
+    return (
+      <div className="emptymsg" style={{padding:'28px 20px'}}>
+        <div style={{fontSize:'34px', marginBottom:'8px'}}>☆</div>
+        <div style={{fontSize:'15px', fontWeight:700, marginBottom:'6px'}}>No favorites yet</div>
+        <div>Open any class tab or the Master Reference, then tap the <b>☆</b> beside a spell to pin it here.</div>
+        <div className="note" style={{marginTop:'10px'}}>Tip: star the handful of spells you actually cast each session — this tab becomes your real combat sheet.</div>
+      </div>
+    );
+  }
+  return (<>
+    <div className="starbar" style={{marginBottom:'14px'}}>
+      <span className="lbl">★ Your Favorites</span>
+      <span className="cnt">{uniqueNames.size} spell{uniqueNames.size===1?"":"s"}</span>
+      <span className="note" style={{margin:0, flex:'1 1 160px'}}>
+        Everything you've starred, grouped by class and level. Tap any ★ to unstar it.
+      </span>
+      <button onClick={()=>{ if(confirm("Clear all "+uniqueNames.size+" favorited spells?")) clearAll(); }}>Clear all</button>
+    </div>
+    <SearchBox value={q} onChange={setQ} placeholder="Search your favorites…" count={shown} total={totalStarred}/>
+    {groups.length===0 ? (
+      <div className="emptymsg">None of your favorites match “{q}”.</div>
+    ) : groups.map((g,i)=>(
+      <Sec key={i} title={`${g.icon} ${g.who} — ${g.lvl}`}>
+        <SpellTable rows={g.filtered}/>
+      </Sec>
+    ))}
+    <div className="note" style={{marginTop:'14px'}}>
+      A spell that appears on several class lists (e.g. Cure Wounds) shows up once per class here — that's intentional, so you can see who in the party can cast it.
+    </div>
+  </>);
+}
+
+/* ============================================================
+   DM GATE
+============================================================ */
+const DM_PASSWORD = "1234";
+const DM_UNLOCK_KEY = "dnd_codex_dm_unlocked_v1";
+function DMGate({children, title}){
+  const [unlocked, setUnlocked] = useState(()=>{
+    try{ return window.sessionStorage.getItem(DM_UNLOCK_KEY)==="1"; }catch(e){ return false; }
+  });
+  const [entry, setEntry] = useState("");
+  const [err, setErr] = useState(false);
+  const submit = ()=>{
+    if(entry === DM_PASSWORD){
+      setUnlocked(true); setErr(false); setEntry("");
+      try{ window.sessionStorage.setItem(DM_UNLOCK_KEY,"1"); }catch(e){}
+    } else { setErr(true); setEntry(""); }
+  };
+  const lock = ()=>{
+    setUnlocked(false);
+    try{ window.sessionStorage.removeItem(DM_UNLOCK_KEY); }catch(e){}
+  };
+  if(!unlocked){
+    return (
+      <div className="dmgate">
+        <div className="dmlock">🔒</div>
+        <div className="dmtitle">DM Only</div>
+        <div className="dmsub">{title} is locked. Enter the DM password to continue.</div>
+        <div className="dmrow">
+          <input
+            className={"dminput"+(err?" err":"")}
+            type="password"
+            inputMode="numeric"
+            value={entry}
+            placeholder="Password"
+            onChange={e=>{ setEntry(e.target.value); setErr(false); }}
+            onKeyDown={e=>{ if(e.key==="Enter") submit(); }}
+            autoComplete="off"
+          />
+          <button className="dmbtn" onClick={submit}>Unlock</button>
+        </div>
+        {err && <div className="dmerr">Incorrect password — try again.</div>}
+      </div>
+    );
+  }
+  return (<>
+    <div className="dmunlocked">
+      <span>🔓 <b>DM view unlocked</b></span>
+      <button onClick={lock}>Lock again</button>
+    </div>
+    {children}
+  </>);
+}
+
+function ShopPanel(){
+  const [q,setQ]=useState("");
+  const [tab,setTab]=useState("all");
+  const secs = SHOP_SECTIONS
+    .filter(s=>tab==="all"||s.id===tab)
+    .map(s=>({...s, filtered: filterRows(s.rows,q)}))
+    .filter(s=>s.filtered.length>0);
+  const total = SHOP_SECTIONS.reduce((n,s)=>n+s.rows.length,0);
+  const shown = secs.reduce((n,s)=>n+s.filtered.length,0);
+  const searching = q.trim().length>0;
+  return (<>
+    <SearchBox value={q} onChange={setQ} placeholder="Search items — name, price, effect…" count={shown} total={total}/>
+    <div className="chiprow">
+      <button className={"chip"+(tab==="all"?" on":"")} onClick={()=>setTab("all")}>All</button>
+      {SHOP_SECTIONS.map(s=>(
+        <button key={s.id} className={"chip"+(tab===s.id?" on":"")} onClick={()=>setTab(s.id)}>{s.label}</button>
+      ))}
+    </div>
+    {!searching && tab==="all" && (
+      <Sec title="Currency — quick conversion">
+        <div className="dcbar">
+          <div className="dcitem"><div className="lbl">The only math you need</div><div className="val">1 gp = 10 sp = 100 cp</div><div className="sub">10 cp = 1 sp · 10 sp = 1 gp</div></div>
+          <div className="dcdivider"></div>
+          <div className="dcitem"><div className="lbl">Higher denominations</div><div className="val">1 pp = 10 gp · 1 ep = 5 sp</div><div className="sub">platinum &amp; electrum (electrum is rare)</div></div>
+        </div>
+        <div className="note">Starting gold is usually <Roll>5d4 × 10 gp</Roll> for most classes (Monk is the exception at <Roll>5d4 gp</Roll> — no multiplier). Selling loot: you generally get <b>half</b> the listed price for used gear.</div>
+      </Sec>
+    )}
+    {secs.length===0 ? (
+      <div className="emptymsg">No items match “{q}”. Try <b>potion</b>, <b>rope</b>, <b>fire</b>, <b>armor</b>, or a price like <b>gp</b>.</div>
+    ) : secs.map((s,i)=>(
+      <Sec key={i} title={s.title}>
+        {!searching && <div className="note" style={{marginBottom:'8px'}}>{s.note}</div>}
+        <ShopTable rows={s.filtered}/>
+      </Sec>
+    ))}
+    <div className="note" style={{marginTop:'14px'}}>Prices are the PHB / SRD 5.1 standard list. Individual DMs adjust for scarcity, remote villages, or war economies — treat these as the baseline your DM starts from, not a guarantee.</div>
+  </>);
+}
+
+function MonkSubclassSummary(){
+  return (<>
+    <Sec title="🥷 Shadow Monk — Subclass Features">
+      <Act name="Shadow Arts" meta="Action · 2 ki per casting · Level 3">
+        <p>Spend 2 ki to cast <b>Darkness</b>, <b>Darkvision</b>, <b>Pass without Trace</b>, or <b>Silence</b> — no material components needed. Also grants the <b>Minor Illusion</b> cantrip free and at will.</p>
+        <p className="note" style={{margin:'6px 0 0'}}>Pass without Trace (+10 party Stealth) is usually the best value. Your own Darkness blocks ordinary darkvision — including yours.</p>
+      </Act>
+      <Act name="Shadow Step" meta="Bonus Action · FREE (no ki) · Level 6 · Requires dim light or darkness">
+        <p>Teleport up to <Roll>60 ft</Roll> between shadows (start and destination must both be dim light/darkness, and you must see the destination), then gain <b>advantage on your first melee attack</b> before end of turn.</p>
+      </Act>
+    </Sec>
+    <Sec title="🔥 Four Elements Monk — Subclass Feature">
+      <Act name="Disciple of the Elements" meta="Level 3 · Elemental Attunement + 1 discipline; +1 more at level 6">
+        <p>Disciplines cost ki (1–4 at this tier) and use your <b>Action</b> unless noted — meaning no Flurry that turn. Saves use your <b>Ki save DC</b>. Upcasting caps at <b>3 total ki per spell</b> at levels 5–8.</p>
+      </Act>
+      <DisciplineTable lv={7}/>
+    </Sec>
+  </>);
+}
+
+function MasterWeapons(){
+  const [q, setQ] = useState("");
+  const usedBy = buildWeaponUsers();
+  // dedupe all weapon rows into one master list, keep richest properties/notes we have
+  const all = {};
+  [simpleMelee, simpleRanged, bardMartial, clericWeapons, druidWeapons, monkWeapons, wizardWeapons].forEach(list=>{
+    list.forEach(r=>{ if(!all[r[0]]) all[r[0]] = r; });
+  });
+  const allNames = Object.keys(all).sort();
+  // search across name, damage, properties, notes AND the "used by" class tags
+  const names = (()=>{
+    const s = q.trim().toLowerCase();
+    if(!s) return allNames;
+    const terms = s.split(/\s+/);
+    return allNames.filter(n=>{
+      const tags = Array.from(usedBy[n]||[]).join(" ");
+      const hay = (n + " " + all[n].slice(1).join(" ") + " " + tags).toLowerCase();
+      return terms.every(t=>hay.includes(t));
+    });
+  })();
+  const searching = q.trim().length>0;
+  return (<>
+    <SearchBox
+      value={q} onChange={setQ}
+      placeholder="Search weapons — name, damage, property, class…"
+      count={names.length} total={allNames.length}
+    />
+    {!searching && <WeaponAttackExplainer/>}
+    {!searching && <QuickMath/>}
+    <Sec title="Every Weapon in Play — Master List">
+      {names.length===0 ? (
+        <div className="emptymsg">No weapons match “{q}”. Try <b>finesse</b>, <b>thrown</b>, <b>monk</b>, <b>1d8</b>, or a weapon name.</div>
+      ) : (
+      <table className="rtable"><thead><tr><th style={{width:'16%'}}>Weapon</th><th style={{width:'12%'}}>Damage</th><th style={{width:'18%'}}>Properties</th><th style={{width:'18%'}}>Used By</th><th>Notes</th></tr></thead>
+      <tbody>{names.map((n,i)=>{
+        const r = all[n];
+        const tags = Array.from(usedBy[n]||[]);
+        return (<tr key={i}><td className="nm" data-label="Weapon">{n}</td><td data-label="Damage">{r[1]}</td><td data-label="Properties">{r[2]}</td>
+          <td data-label="Used By">{tags.map((t,j)=><span key={j} className="pill" style={{marginRight:'2px'}}>{t}</span>)}</td>
+          <td data-label="Notes">{r[3]}</td></tr>);
+      })}</tbody></table>
+      )}
+    </Sec>
+    <Sec title="Attack &amp; Damage Formulas — by class">
+      <table className="rtable"><thead><tr><th style={{width:'18%'}}>Class</th><th style={{width:'40%'}}>Attack Roll</th><th>Damage Roll</th></tr></thead><tbody>
+        <tr><td className="nm" data-label="Class">Lore Bard</td><td data-label="Attack Roll"><Roll>d20 + STR or DEX (finesse/ranged) + prof</Roll></td><td data-label="Damage Roll"><Roll>weapon die + same mod</Roll></td></tr>
+        <tr><td className="nm" data-label="Class">Shadow Monk</td><td data-label="Attack Roll"><Roll>d20 + STR or DEX (your choice) + prof</Roll></td><td data-label="Damage Roll"><Roll>Martial Arts die OR weapon die (higher) + same mod</Roll></td></tr>
+        <tr><td className="nm" data-label="Class">4 Elements Monk</td><td data-label="Attack Roll"><Roll>d20 + STR or DEX (your choice) + prof</Roll></td><td data-label="Damage Roll"><Roll>Martial Arts die OR weapon die (higher) + same mod</Roll>; Fangs of the Fire Snake converts to fire dmg +1d10</td></tr>
+        <tr><td className="nm" data-label="Class">Life Cleric</td><td data-label="Attack Roll"><Roll>d20 + STR + prof</Roll> (DEX only if wielding the finesse Dagger)</td><td data-label="Damage Roll"><Roll>weapon die + same mod</Roll></td></tr>
+        <tr><td className="nm" data-label="Class">Moon Druid</td><td data-label="Attack Roll"><Roll>d20 + STR or DEX (finesse) + prof</Roll>; <Roll>d20 + WIS + prof</Roll> if using Shillelagh on club/quarterstaff</td><td data-label="Damage Roll"><Roll>weapon die + same mod</Roll>; Shillelagh forces <Roll>1d8 + WIS</Roll></td></tr>
+        <tr><td className="nm" data-label="Class">Evocation Wizard</td><td data-label="Attack Roll"><Roll>d20 + STR (Quarterstaff/Crossbow) or DEX (Dagger/Dart/Sling) + prof</Roll></td><td data-label="Damage Roll"><Roll>weapon die + same mod</Roll> — rarely relevant since wizards fight with spells, not weapons</td></tr>
+      </tbody></table>
+      <div className="note">"Monk (both)" = usable by Shadow and 4 Elements alike. Neither subclass grants extra weapon proficiencies beyond the standard monk list, so their weapon options are identical.</div>
+    </Sec>
+  </>);
+}
+
+function App(){
+  const [cls, setCls] = useState("lore");
+  const [lv, setLv] = useState(1);
+  const [view, setView] = useState("features");
+  const [masterMode, setMasterMode] = useState(false);
+  const [shopMode, setShopMode] = useState(false);
+  const [favMode, setFavMode] = useState(false);
+  const [masterView, setMasterView] = useState("spells");
+  const [clsOnlyStarred, setClsOnlyStarred] = useState(false);
+  const {stars} = useStars();
+  // unique starred spell names (a spell on 3 class lists counts once on the badge)
+  const starCount = (()=>{ const s=new Set();
+    SPELL_GROUPS.forEach(g=>g.rows().forEach(r=>{ if(stars.has(spellId(r))) s.add(nodeText(r[0]).trim()); }));
+    return s.size; })();
+  const K = CLASSES[cls];
+
+  let headerRight="", body=null;
+  const isMonk = K.kind==='monk';
+  headerRight = isMonk ? `Key stat DEX/WIS · Hit die d8 · Saves ${K.saves}` : `Casting ${K.cast} · Hit die d8 · Saves ${K.saves}`;
+
+  if(isMonk){
+    if(view==='features'){
+      const {maDie} = (()=>({maDie: lv>=17?'1d10': lv>=11?'1d8': lv>=5?'1d6':'1d4'}))();
+      body = <>
+        <Sec title="At-a-Glance">
+          <div className="slots">
+            <span className="slot">Martial Arts die: {maDie}</span>
+            <span className="slot">Ki points: {lv>=2?lv:'—'}</span>
+            <span className="slot">Unarmored move bonus: {lv>=6?'+15 ft':lv>=2?'+10 ft':'—'}</span>
+            <span className="slot">Attacks/action: {lv>=5?2:1}</span>
+          </div>
+          <div className="note">AC (no armor/shield) = <Roll>10 + DEX mod + WIS mod</Roll>. Ki save DC = <Roll>8 + prof + WIS mod</Roll>.</div>
+        </Sec>
+        <MartialArtsKiGuide lv={lv}/>
+        {K.sub==='elements' && lv>=3 && <DisciplineTable lv={lv}/>}
+        <Sec title="All Non-Basic Combat Actions (full detail, cumulative to this level)">
+          {monkActions(lv, K.sub)}
+        </Sec>
+      </>;
+    } else {
+      body = MonkWeaponsPanel(K.sub);
+    }
+  } else {
+    const feats = cls==='lore'?LoreFeatures(lv): cls==='life'?LifeFeatures(lv): cls==='moon'?MoonFeatures(lv): WizardFeatures(lv);
+    const slotArr = SLOTS[lv];
+    const prof = PROF[lv];
+    const book = BOOKS[cls];
+    if(view==='features'){
+      body = <>
+        <Sec title="Class & Subclass Features (full detail, cumulative to this level)">{feats}</Sec>
+        <Sec title="Spell Slots"><Slots arr={slotArr}/></Sec>
+        {cls==='moon' && lv>=2 && (
+          <Sec title="Wild Shape — Available Combat Forms">
+            {(() => { const set = lv>=6?moonForms[6]:moonForms[2];
+              return <table className="rtable"><thead><tr><th style={{width:'20%'}}>Beast</th><th style={{width:'30%'}}>Stat Block</th><th>Attacks (full rolls)</th></tr></thead>
+              <tbody>{set.map((r,i)=><tr key={i}><td className="nm" data-label="Beast">{r[0]}</td><td data-label="Stat Block">{r[1]}</td><td data-label="Attacks">{r[2]}</td></tr>)}</tbody></table>; })()}
+            <div className="note">You use the beast's STR/DEX/CON, HP, speed, and listed attacks (already includes its own to-hit and damage bonus) — not your own physical stats. Your INT/WIS/CHA, alignment, and personality stay yours.</div>
+          </Sec>
+        )}
+        {casterNote(K.statLabel, prof)}
+      </>;
+    } else if(view==='spells'){
+      const S = rows => keepStarred(rows, stars, clsOnlyStarred);
+      const anyStarred = [book.cant,book.l1,book.l2,book.l3,book.l4].some(r=>S(r).length>0);
+      body = <>
+        <StarBar onlyStarred={clsOnlyStarred} setOnlyStarred={setClsOnlyStarred} scopeLabel={clsOnlyStarred?"starred spells only":"all spells for this class"}/>
+        {clsOnlyStarred && !anyStarred && <div className="emptymsg">No starred spells for this class yet — tap the ☆ beside any spell to pin it.</div>}
+        <Sec title="Cantrips">{<SpellTable rows={S(book.cant)}/>}</Sec>
+        <Sec title="1st-Level Spells — full candidate list">{<SpellTable rows={S(book.l1)}/>}</Sec>
+        {lv>=3 && <Sec title="2nd-Level Spells — full candidate list">{<SpellTable rows={S(book.l2)}/>}</Sec>}
+        {lv>=5 && <Sec title="3rd-Level Spells — full candidate list">{<SpellTable rows={S(book.l3)}/>}</Sec>}
+        {lv>=7 && <Sec title="4th-Level Spells — full candidate list">{<SpellTable rows={S(book.l4)}/>}</Sec>}
+        {casterNote(K.statLabel, prof)}
+        {legend}
+      </>;
+    } else {
+      body = cls==='lore' ? LoreWeapons() : cls==='life' ? LifeWeapons() : cls==='moon' ? MoonWeapons() : WizardWeapons();
+    }
+  }
+
+  const tabs = isMonk ? ["features","weapons"] : ["features","spells","weapons"];
+  const tabLabel = {features:"Features & Actions", spells:"Full Spell Lists", weapons:"Weapons & Rolls"};
+
+  return (
+    <div>
+      <div className="head">
+        <h1>Party Combat Codex</h1>
+        <p>Levels 1–7 · Full mechanical detail on every action &amp; spell, plus weapon attack/damage rolls · Verified vs 2014 5e (PHB / XGtE / SRD 5.1)</p>
+      </div>
+
+      <div className="navwrap">
+        <div className="subtabs">
+          {ORDER.map(k=>(
+            <button key={k} className={"subtab"+(!masterMode && !shopMode && !favMode && k===cls?" on":"")} onClick={()=>{setCls(k); setView("features"); setMasterMode(false); setShopMode(false); setFavMode(false);}}>{CLASSES[k].label}</button>
+          ))}
+          <button className={"subtab"+(masterMode?" on":"")} style={{background: masterMode?'var(--blood)':'var(--parch)', color: masterMode?'#fff':'var(--ink)', borderColor:'var(--blood)'}} onClick={()=>{setMasterMode(true); setShopMode(false); setFavMode(false);}}>★ Master Reference</button>
+          <button className={"subtab"+(shopMode?" on":"")} style={{background: shopMode?'var(--moss)':'var(--parch)', color: shopMode?'#fff':'var(--ink)', borderColor:'var(--moss)'}} onClick={()=>{setShopMode(true); setMasterMode(false); setFavMode(false);}}>🔒 Shop &amp; Prices</button>
+          <button className={"subtab favtab"+(favMode?" on":"")} onClick={()=>{setFavMode(true); setMasterMode(false); setShopMode(false);}}>★ Favorites{stars.size>0 && <span className="favcount">{starCount}</span>}</button>
+        </div>
+
+        {shopMode || favMode ? null : masterMode ? (
+          <div className="viewtoggle">
+            <button className={"vt"+(masterView==='spells'?' on':'')} onClick={()=>setMasterView('spells')}>All Spells<span className="wide"> (every caster)</span></button>
+            <button className={"vt"+(masterView==='weapons'?' on':'')} onClick={()=>setMasterView('weapons')}>All Weapons<span className="wide"> (every class)</span></button>
+            <button className={"vt"+(masterView==='monk'?' on':'')} onClick={()=>setMasterView('monk')}>Martial Arts &amp; Ki<span className="wide"> (monks)</span></button>
+            <button className={"vt"+(masterView==='combat'?' on':'')} onClick={()=>setMasterView('combat')}>Combat Actions<span className="wide"> (everyone)</span></button>
+          </div>
+        ) : (
+          <>
+            <div className="levels">
+              <div className="lvlbl">Choose a level</div>
+              {[1,2,3,4,5,6,7].map(n=>(
+                <button key={n} className={"lvbtn"+(n===lv?" on":"")} onClick={()=>setLv(n)}>{n}</button>
+              ))}
+            </div>
+            <div className="viewtoggle">
+              {tabs.map(t=>(<button key={t} className={"vt"+(view===t?' on':'')} onClick={()=>setView(t)}>{tabLabel[t]}</button>))}
+            </div>
+          </>
+        )}
+      </div>
+
+      {favMode ? (
+        <div className="panel" key="fav">
+          <div className="lvhead">
+            <h2>★ Favorites</h2>
+            <span className="sub">Every spell you've starred, in one place — your working combat sheet</span>
+          </div>
+          <FavoritesPanel/>
+        </div>
+      ) : shopMode ? (
+        <div className="panel" key="shop">
+          <div className="lvhead">
+            <h2>🪙 Shop &amp; Prices</h2>
+            <span className="sub">What low-level parties actually buy — PHB/SRD prices with what each item does</span>
+          </div>
+          <DMGate title="Shop & Prices"><ShopPanel/></DMGate>
+        </div>
+      ) : masterMode ? (
+        <div className="panel" key={"master"+masterView}>
+          <div className="lvhead">
+            <h2>Master Reference</h2>
+            <span className="sub">Everything through level 7, all 6 classes, one scannable list — for fast table lookup mid-combat</span>
+          </div>
+          {masterView==='spells' ? <MasterSpells/> : masterView==='weapons' ? <MasterWeapons/> : masterView==='combat' ? <UniversalCombat/> : <><MartialArtsKiGuide/><MonkSubclassSummary/></>}
+        </div>
+      ) : (
+        <div className="panel" key={cls+lv+view}>
+          <div className="lvhead">
+            <h2>{K.label}</h2>
+            <span className="sub">Level {lv} · {headerRight}</span>
+          </div>
+          {isMonk ? <KiDCBar lv={lv}/> : <DCBar statLabel={K.statLabel} prof={PROF[lv]}/>}
+          {body}
+        </div>
+      )}
+
+      <div className="foot">
+        Prof bonus: +2 (L1–4), +3 (L5–7). Weapon/attack math assumes no magic items or feats beyond what's listed. Beast-form stat blocks are 2014 Monster Manual values.
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<StarProvider><App/></StarProvider>);
+</script>
