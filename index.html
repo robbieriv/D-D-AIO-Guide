@@ -352,6 +352,23 @@
       background:var(--parch); margin:0 -6px; padding:8px 6px 6px;
       border-bottom:2px solid var(--edge); box-shadow:0 2px 8px rgba(40,28,10,.14);
     }
+    /* Condensed state (set once the player scrolls into a list): collapse the
+       level row + view toggles down to nothing so only the class-tab strip
+       stays pinned. The rows animate their height/opacity so it feels smooth,
+       and they're restored the moment the user scrolls back near the top or
+       changes tab. The active level/view is still shown in the panel's <h2>
+       sub-line, so nothing is lost — just tucked away to free vertical space. */
+    .navwrap .levels,
+    .navwrap .viewtoggle{
+      overflow:hidden;
+      max-height:180px; opacity:1;
+      transition:max-height .22s ease, opacity .18s ease, margin .22s ease, padding .22s ease;
+    }
+    .navwrap.condensed{ padding-bottom:4px; box-shadow:0 3px 10px rgba(40,28,10,.2) }
+    .navwrap.condensed .levels,
+    .navwrap.condensed .viewtoggle{
+      max-height:0; opacity:0; margin-top:0; margin-bottom:0; pointer-events:none;
+    }
     /* Class tabs become a horizontal swipe strip so they never wrap to 3 lines.
        The wrapper hosts left/right cues that make the swipe affordance obvious. */
     .subtabs-wrap{
@@ -1640,7 +1657,7 @@ function MartialArtsKiGuide({lv}){
 }
 
 /* ---------------- MONK detailed action panels ---------------- */
-function monkActions(lv, sub){
+function monkActions(lv, sub, q){
   const maDie = lv>=17?'1d10': lv>=11?'1d8': lv>=5?'1d6':'1d4';
   const acts=[];
   acts.push(<Act key="ma" name="Martial Arts — Bonus Unarmed Strike" meta={`Bonus Action · Die: ${maDie} · Requires: took the Attack action this turn using an unarmed strike or monk weapon`}>
@@ -1736,10 +1753,19 @@ function monkActions(lv, sub){
       </Act>);
     }
   }
-  return acts;
+  if(!q || !q.trim()) return acts;
+  // Filter Act cards by their name + meta + body text (same alias-aware matching).
+  const terms = q.trim().toLowerCase().split(/\s+/);
+  return acts.filter(a=>{
+    const p = a.props || {};
+    const hay = (nodeText(p.name)+" "+nodeText(p.meta)+" "+nodeText(p.children)).toLowerCase();
+    return terms.every(term=>{
+      if(hay.includes(term)) return true;
+      const alts = SEARCH_ALIASES[term];
+      return alts ? alts.some(x=>hay.includes(x)) : false;
+    });
+  });
 }
-
-/* ---------------- WEAPON PANELS PER CLASS ---------------- */
 function LoreWeapons(){
   return (<>
     <Sec title="Simple Weapons (all bards proficient)">
@@ -2511,6 +2537,7 @@ function App(){
   const [helpOpen, setHelpOpen] = useState(false);
   const [masterView, setMasterView] = useState("spells");
   const [clsOnlyStarred, setClsOnlyStarred] = useState(false);
+  const [clsQ, setClsQ] = useState("");
   const {stars} = useStars();
   // unique starred spell names (a spell on 3 class lists counts once on the badge)
   const starCount = (()=>{ const s=new Set();
@@ -2554,6 +2581,30 @@ function App(){
     window.addEventListener("resize", updateEdges);
     return ()=>window.removeEventListener("resize", updateEdges);
   }, []);
+  useEffect(()=>{ setClsQ(""); }, [cls, view, masterMode, shopMode, favMode, profileMode]);
+
+  // Mobile: once the player scrolls down into a list, collapse the bulky level
+  // row + view toggles so the sticky bar keeps only the class tabs pinned —
+  // reclaiming ~1/3 of the screen mid-combat. Scrolling back near the top or
+  // switching tabs restores the full nav. Hysteresis (80 down / 30 up) avoids
+  // flicker. Desktop nav isn't sticky, so this is a harmless no-op there.
+  const [navCondensed, setNavCondensed] = useState(false);
+  useEffect(()=>{
+    let ticking = false;
+    const onScroll = ()=>{
+      if(ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(()=>{
+        const y = window.scrollY || window.pageYOffset || 0;
+        setNavCondensed(prev => prev ? y > 30 : y > 80);
+        ticking = false;
+      });
+    };
+    window.addEventListener("scroll", onScroll, {passive:true});
+    return ()=>window.removeEventListener("scroll", onScroll);
+  }, []);
+  // Any tab / level / view change resets to full nav (view returns to the top).
+  useEffect(()=>{ setNavCondensed(false); }, [activeKey, lv, view, masterView]);
 
   let headerRight="", body=null;
   const isMonk = K.kind==='monk';
@@ -2562,8 +2613,16 @@ function App(){
   if(isMonk){
     if(view==='features'){
       const {maDie} = (()=>({maDie: lv>=17?'1d10': lv>=11?'1d8': lv>=5?'1d6':'1d4'}))();
+      const filteredActs = monkActions(lv, K.sub, clsQ);
+      const searching = clsQ.trim().length>0;
+      const totalActs = monkActions(lv, K.sub).length;
       body = <>
-        <Sec title="At-a-Glance">
+        <SearchBox
+          value={clsQ} onChange={setClsQ}
+          placeholder="Search monk actions — ki, stun, dodge, discipline…"
+          count={filteredActs.length} total={totalActs}
+        />
+        {!searching && <Sec title="At-a-Glance">
           <div className="slots">
             <span className="slot">Martial Arts die: {maDie}</span>
             <span className="slot">Ki points: {lv>=2?lv:'—'}</span>
@@ -2571,11 +2630,13 @@ function App(){
             <span className="slot">Attacks/action: {lv>=5?2:1}</span>
           </div>
           <div className="note">AC (no armor/shield) = <Roll>10 + DEX mod + WIS mod</Roll>. Ki save DC = <Roll>8 + prof + WIS mod</Roll>.</div>
-        </Sec>
-        <MartialArtsKiGuide lv={lv}/>
-        {K.sub==='elements' && lv>=3 && <DisciplineTable lv={lv}/>}
-        <Sec title="All Non-Basic Combat Actions (full detail, cumulative to this level)">
-          {monkActions(lv, K.sub)}
+        </Sec>}
+        {!searching && <MartialArtsKiGuide lv={lv}/>}
+        {!searching && K.sub==='elements' && lv>=3 && <DisciplineTable lv={lv}/>}
+        <Sec title={searching ? "Matching Combat Actions" : "All Non-Basic Combat Actions (full detail, cumulative to this level)"}>
+          {searching && filteredActs.length===0
+            ? <div className="emptymsg">No monk actions match “{clsQ}”. Try <b>ki</b>, <b>stun</b>, <b>flurry</b>, <b>dodge</b>, or a discipline name.</div>
+            : filteredActs}
         </Sec>
       </>;
     } else {
@@ -2602,17 +2663,32 @@ function App(){
       </>;
     } else if(view==='spells'){
       const S = rows => keepStarred(rows, stars, clsOnlyStarred);
+      // Layer the text search on top of the starred filter.
+      const F = rows => filterRows(S(rows), clsQ);
       const anyStarred = [book.cant,book.l1,book.l2,book.l3,book.l4].some(r=>S(r).length>0);
+      const groups = [
+        {t:"Cantrips", rows:F(book.cant), show:true},
+        {t:"1st-Level Spells — full candidate list", rows:F(book.l1), show:true},
+        {t:"2nd-Level Spells — full candidate list", rows:F(book.l2), show:lv>=3},
+        {t:"3rd-Level Spells — full candidate list", rows:F(book.l3), show:lv>=5},
+        {t:"4th-Level Spells — full candidate list", rows:F(book.l4), show:lv>=7},
+      ].filter(g=>g.show);
+      const totalShown = groups.reduce((n,g)=>n+g.rows.length, 0);
+      const totalAvail = [book.cant,book.l1, lv>=3&&book.l2, lv>=5&&book.l3, lv>=7&&book.l4]
+        .filter(Boolean).reduce((n,r)=>n+S(r).length, 0);
+      const searching = clsQ.trim().length>0;
       body = <>
+        <SearchBox
+          value={clsQ} onChange={setClsQ}
+          placeholder={"Search "+K.label+" spells — name, effect, damage…"}
+          count={totalShown} total={totalAvail}
+        />
         <StarBar onlyStarred={clsOnlyStarred} setOnlyStarred={setClsOnlyStarred} scopeLabel={clsOnlyStarred?"starred spells only":"all spells for this class"}/>
         {clsOnlyStarred && !anyStarred && <div className="emptymsg">No starred spells for this class yet — tap the ☆ beside any spell to pin it.</div>}
-        <Sec title="Cantrips">{<SpellTable rows={S(book.cant)}/>}</Sec>
-        <Sec title="1st-Level Spells — full candidate list">{<SpellTable rows={S(book.l1)}/>}</Sec>
-        {lv>=3 && <Sec title="2nd-Level Spells — full candidate list">{<SpellTable rows={S(book.l2)}/>}</Sec>}
-        {lv>=5 && <Sec title="3rd-Level Spells — full candidate list">{<SpellTable rows={S(book.l3)}/>}</Sec>}
-        {lv>=7 && <Sec title="4th-Level Spells — full candidate list">{<SpellTable rows={S(book.l4)}/>}</Sec>}
-        {casterNote(K.statLabel, prof)}
-        {legend}
+        {searching && totalShown===0 && <div className="emptymsg">No spells match “{clsQ}”. Try a spell name, a condition like <b>prone</b>, or an effect like <b>heal</b> or <b>damage</b>.</div>}
+        {groups.map((g,i)=> g.rows.length>0 && <Sec key={i} title={g.t}>{<SpellTable rows={g.rows}/>}</Sec>)}
+        {!searching && casterNote(K.statLabel, prof)}
+        {!searching && legend}
       </>;
     } else {
       body = cls==='lore' ? LoreWeapons() : cls==='life' ? LifeWeapons() : cls==='moon' ? MoonWeapons() : WizardWeapons();
@@ -2635,7 +2711,7 @@ function App(){
         <p>Levels 1–7 · Full mechanical detail on every action &amp; spell, plus weapon attack/damage rolls · Verified vs 2014 5e (PHB / XGtE / SRD 5.1)</p>
       </div>
 
-      <div className="navwrap">
+      <div className={"navwrap"+(navCondensed?" condensed":"")}>
         <div className="subtabs-wrap" data-l={scrollEdges.left?"1":"0"} data-r={scrollEdges.right?"1":"0"}>
         <div className="subtabs" ref={subtabsRef} onScroll={updateEdges}>
           {ORDER.map(k=>(
@@ -2643,7 +2719,7 @@ function App(){
           ))}
           <button className={"subtab"+(masterMode?" on":"")} style={{background: masterMode?'var(--blood)':'var(--parch)', color: masterMode?'#fff':'var(--ink)', borderColor:'var(--blood)'}} onClick={()=>{setMasterMode(true); setShopMode(false); setFavMode(false); setProfileMode(false);}}>★ Master Reference</button>
           <button className={"subtab"+(shopMode?" on":"")} style={{background: shopMode?'var(--moss)':'var(--parch)', color: shopMode?'#fff':'var(--ink)', borderColor:'var(--moss)'}} onClick={()=>{setShopMode(true); setMasterMode(false); setFavMode(false); setProfileMode(false);}}>🔒 Shop &amp; Prices</button>
-          <button className={"subtab favtab"+(favMode?" on":"")} onClick={()=>{setFavMode(true); setMasterMode(false); setShopMode(false); setProfileMode(false);}}>★ Favorites{stars.size>0 && <span className="favcount">{starCount}</span>}</button>
+          <button className={"subtab favtab"+(favMode?" on":"")} onClick={()=>{setFavMode(true); setMasterMode(false); setShopMode(false); setProfileMode(false);}}>★ Favorites{starCount>0 && <span className="favcount">{starCount}</span>}</button>
           <button className={"subtab"+(profileMode?" on":"")} style={{background: profileMode?'var(--gold)':'var(--parch)', color: profileMode?'#fff':'var(--ink)', borderColor:'var(--gold)'}} onClick={()=>{setProfileMode(true); setMasterMode(false); setShopMode(false); setFavMode(false);}}>👤 My Character</button>
         </div>
         </div>
