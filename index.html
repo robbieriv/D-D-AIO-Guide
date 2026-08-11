@@ -16,6 +16,12 @@
   }
   .head{text-align:center; padding:18px 12px 10px; border-bottom:3px double var(--edge); margin-bottom:14px}
   .head h1{font-size:clamp(24px,5vw,38px); margin:0; letter-spacing:.02em; font-weight:700; color:var(--blood); text-shadow:1px 1px 0 var(--edge)}
+  .titlerow{display:flex; align-items:center; justify-content:center; gap:16px; flex-wrap:nowrap}
+  .titleimg{
+    width:58px; height:58px; border-radius:50%; object-fit:cover;
+    border:2.5px solid var(--gold); box-shadow:0 2px 8px var(--shadow); flex:0 0 auto;
+    background:var(--parch);
+  }
   .head p{margin:6px 0 0; font-size:14px; font-style:italic; color:#4a3a24}
 
   .subtabs{display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-bottom:12px}
@@ -231,6 +237,53 @@
     border-radius:8px; padding:9px 18px; font-weight:700; font-size:13.5px; cursor:pointer; font-family:inherit;
   }
   .preset:hover{background:var(--blood); color:#fff}
+
+  /* ---- Help: floating button + modal ---- */
+  .helpfab{
+    position:fixed; bottom:20px; right:20px; z-index:50;
+    width:52px; height:52px; border-radius:50%; border:2px solid #fff;
+    background:var(--blood); color:#fff; font-size:26px; font-weight:800; font-family:inherit;
+    cursor:pointer; box-shadow:0 3px 12px rgba(40,28,10,.45); line-height:1;
+    display:flex; align-items:center; justify-content:center; transition:transform .12s, background .12s;
+  }
+  .helpfab:hover{background:var(--gold); transform:scale(1.06)}
+  .helpoverlay{
+    position:fixed; inset:0; z-index:60; background:rgba(28,23,18,.66);
+    display:flex; align-items:flex-start; justify-content:center; padding:24px 14px; overflow-y:auto;
+    animation:helpfade .16s ease;
+  }
+  @keyframes helpfade{from{opacity:0}to{opacity:1}}
+  .helpmodal{
+    position:relative; background:var(--parch); color:var(--ink);
+    max-width:620px; width:100%; margin:auto; border-radius:14px; padding:26px 26px 22px;
+    border:2px solid var(--gold); box-shadow:0 10px 40px rgba(0,0,0,.4);
+  }
+  .helpclose{
+    position:absolute; top:12px; right:14px; width:34px; height:34px; border-radius:50%;
+    border:1.5px solid var(--edge); background:#fff; color:var(--ink); font-size:22px; font-weight:700;
+    cursor:pointer; line-height:1; font-family:inherit;
+  }
+  .helpclose:hover{background:var(--blood); color:#fff; border-color:var(--blood)}
+  .helpmodal h2{margin:0 0 8px; color:var(--blood); font-size:23px; padding-right:34px}
+  .helpintro{margin:0 0 18px; font-size:14.5px; line-height:1.5; color:#4a3d2a}
+  .helpstep{display:flex; gap:13px; margin-bottom:15px; align-items:flex-start}
+  .hnum{
+    flex:0 0 34px; width:34px; height:34px; border-radius:50%;
+    background:var(--gold); color:#fff; font-weight:800; font-size:16px;
+    display:flex; align-items:center; justify-content:center; margin-top:1px;
+  }
+  .hbody h3{margin:0 0 3px; font-size:15.5px; color:var(--ink)}
+  .hbody p{margin:0; font-size:13.5px; line-height:1.5; color:#4a3d2a}
+  .helpfoot{
+    background:rgba(166,124,26,.12); border:1px solid var(--edge); border-radius:9px;
+    padding:12px 14px; margin:18px 0 4px;
+  }
+  .helpfoot p{margin:0; font-size:13.5px; line-height:1.5; color:#4a3d2a}
+  .helpdone{
+    display:block; width:100%; margin-top:16px; border:none; background:var(--blood); color:#fff;
+    border-radius:9px; padding:12px; font-size:15px; font-weight:800; cursor:pointer; font-family:inherit;
+  }
+  .helpdone:hover{background:var(--gold)}
   /* ---- DM password gate ---- */
   .dmgate{
     display:flex; flex-direction:column; align-items:center; text-align:center;
@@ -289,6 +342,8 @@
     /* Compact header, reclaim vertical space */
     .head{padding:12px 8px 8px; margin-bottom:10px}
     .head h1{font-size:26px}
+    .titlerow{gap:10px}
+    .titleimg{width:42px; height:42px; border-width:2px}
     .head p{font-size:12.5px; line-height:1.4}
 
     /* Sticky nav: class tabs + level buttons stay reachable while scrolling */
@@ -466,6 +521,12 @@
     .pcalc{grid-template-columns:repeat(2,1fr)}
     .pcv{font-size:26px}
     .pf.pf-sm{flex:1 1 45%}
+
+    /* Help button/modal sit a little tighter on phones */
+    .helpfab{bottom:16px; right:16px; width:48px; height:48px; font-size:24px}
+    .helpmodal{padding:22px 18px 18px; border-radius:12px}
+    .helpmodal h2{font-size:20px}
+    .helpstep{gap:11px; margin-bottom:14px}
   }
 
   /* Very small phones */
@@ -490,6 +551,8 @@
 
 <script type="text/babel" data-presets="react">
 const {useState, useRef, useEffect} = React;
+const AVATAR_CHAR = "data:image/jpeg;base64,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";
+const AVATAR_PHOTO = "data:image/jpeg;base64,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";
 
 const Roll = ({children}) => <span className="roll">{children}</span>;
 const Sec = ({title, children}) => (<div className="sec"><h3>{title}</h3>{children}</div>);
@@ -2353,6 +2416,90 @@ function MasterWeapons(){
   </>);
 }
 
+/* ============================================================
+   HELP MODAL — plain-language "how to use this" for players.
+   Opens from a floating ? button; reachable from any tab.
+============================================================ */
+function HelpModal({onClose}){
+  // Close on Escape for keyboard/desktop users.
+  useEffect(()=>{
+    const onKey = (e)=>{ if(e.key==="Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return ()=>window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  return (
+    <div className="helpoverlay" onClick={onClose}>
+      <div className="helpmodal" onClick={e=>e.stopPropagation()} role="dialog" aria-label="How to use this site">
+        <button className="helpclose" onClick={onClose} aria-label="Close help">×</button>
+        <h2>How to use this codex</h2>
+        <p className="helpintro">This is a quick-reference for your D&amp;D game — every spell, action, and number your character needs, without flipping through books. Here's the whole thing in a minute.</p>
+
+        <div className="helpstep">
+          <div className="hnum">1</div>
+          <div className="hbody">
+            <h3>Pick your class tab</h3>
+            <p>The colored buttons near the top are the six characters in the party. Tap yours (Lore Bard, Shadow Monk, and so on). On a phone, that row <b>swipes sideways</b> — watch for the gold arrows at the edges telling you there's more.</p>
+          </div>
+        </div>
+
+        <div className="helpstep">
+          <div className="hnum">2</div>
+          <div className="hbody">
+            <h3>Set your level</h3>
+            <p>Under the tabs, tap the number for your current level (1–7). Everything on the page — features, spell slots, your save DC — updates to match that level.</p>
+          </div>
+        </div>
+
+        <div className="helpstep">
+          <div className="hnum">3</div>
+          <div className="hbody">
+            <h3>Switch between Features, Spells &amp; Weapons</h3>
+            <p>The three buttons below the levels flip between your <b>class features &amp; actions</b>, your <b>full spell list</b>, and your <b>weapons and attack rolls</b>. Everything is written out in full — no rulebook needed.</p>
+          </div>
+        </div>
+
+        <div className="helpstep">
+          <div className="hnum">4</div>
+          <div className="hbody">
+            <h3>Set up "My Character" once</h3>
+            <p>Tap the gold <b>👤 My Character</b> tab and type in your ability modifiers (the little + or − numbers on your sheet) and your level. The site then works out your <b>spell save DC</b>, <b>spell attack</b>, <b>saving throws</b>, and more — so you never do the math mid-fight. It saves on your phone, so you only enter it once.</p>
+          </div>
+        </div>
+
+        <div className="helpstep">
+          <div className="hnum">5</div>
+          <div className="hbody">
+            <h3>Your numbers show up where you need them</h3>
+            <p>Once you've filled in My Character, the gold <b>"Your Spell Save DC"</b> box at the top of your class page shows your real number automatically. If an enemy has to roll to resist your spell, that's the number they're trying to beat.</p>
+          </div>
+        </div>
+
+        <div className="helpstep">
+          <div className="hnum">★</div>
+          <div className="hbody">
+            <h3>Star your favorites</h3>
+            <p>Tap the <b>☆</b> next to any spell to pin it. All your starred spells gather under the <b>★ Favorites</b> tab — a handy short list of the spells you actually cast, instead of scrolling the full list every turn.</p>
+          </div>
+        </div>
+
+        <div className="helpstep">
+          <div className="hnum">📖</div>
+          <div className="hbody">
+            <h3>The other tabs</h3>
+            <p><b>★ Master Reference</b> is an everything-in-one-place lookup (all spells, all weapons, universal combat actions like Dodge and Grapple, and death saves) — great for quick rulings. <b>🔒 Shop &amp; Prices</b> is mainly for the DM.</p>
+          </div>
+        </div>
+
+        <div className="helpfoot">
+          <p><b>New to D&amp;D?</b> Don't worry about reading everything. Find your class, set your level, fill in My Character, and star a few spells you like. That's enough to play. The rest is here when you need it.</p>
+        </div>
+
+        <button className="helpdone" onClick={onClose}>Got it — let's play</button>
+      </div>
+    </div>
+  );
+}
+
 function App(){
   const [cls, setCls] = useState("lore");
   const [lv, setLv] = useState(1);
@@ -2361,6 +2508,7 @@ function App(){
   const [shopMode, setShopMode] = useState(false);
   const [favMode, setFavMode] = useState(false);
   const [profileMode, setProfileMode] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [masterView, setMasterView] = useState("spells");
   const [clsOnlyStarred, setClsOnlyStarred] = useState(false);
   const {stars} = useStars();
@@ -2476,8 +2624,14 @@ function App(){
 
   return (
     <div>
+      <button className="helpfab" onClick={()=>setHelpOpen(true)} aria-label="How to use this site" title="How to use this site">?</button>
+      {helpOpen && <HelpModal onClose={()=>setHelpOpen(false)}/>}
       <div className="head">
-        <h1>Party Combat Codex</h1>
+        <div className="titlerow">
+          <img className="titleimg" src={AVATAR_CHAR} alt="" />
+          <h1>Party Combat Codex</h1>
+          <img className="titleimg" src={AVATAR_PHOTO} alt="" />
+        </div>
         <p>Levels 1–7 · Full mechanical detail on every action &amp; spell, plus weapon attack/damage rolls · Verified vs 2014 5e (PHB / XGtE / SRD 5.1)</p>
       </div>
 
