@@ -90,6 +90,25 @@
   .dcitem.yourshint .lbl{font-size:10.5px; text-transform:uppercase; letter-spacing:.12em; color:#ffe9a8; margin-bottom:3px}
   .dcitem.yourshint .sub{font-size:11.5px; color:#ffe9a8; font-weight:600}
   .dcitem.yourshint b{color:#fff}
+
+  /* ---- Inline modifier inputs (sync with My Character) ---- */
+  .modbar{
+    display:flex; align-items:center; flex-wrap:wrap; gap:10px;
+    background:rgba(166,124,26,.1); border:1.5px solid var(--gold); border-radius:9px;
+    padding:9px 13px; margin:0 0 14px;
+  }
+  .modbar-title{font-weight:800; font-size:12.5px; color:var(--blood); text-transform:uppercase; letter-spacing:.06em}
+  .modbar-note{font-size:11.5px; color:#7a6b4e; flex:1 1 100%; margin-top:-2px}
+  .modinput{display:inline-flex; align-items:center; gap:5px}
+  .modinput-lbl{font-weight:800; font-size:12px; color:var(--blood); letter-spacing:.03em}
+  .modinput input{
+    width:52px; border:1.5px solid var(--edge); border-radius:7px; padding:6px 6px;
+    background:#fff; color:var(--ink); font-size:15px; font-weight:700; text-align:center; font-family:inherit;
+  }
+  .modinput input:focus{outline:none; border-color:var(--gold); box-shadow:0 0 0 2px rgba(166,124,26,.2)}
+  /* the little "(WIS)" tag inside a resolved dice roll */
+  .rmlbl{font-size:.82em; opacity:.8; font-weight:600}
+  .wdmod{display:inline-block; margin-left:4px; padding:1px 6px; border-radius:6px; background:rgba(120,85,20,.1); color:#5a4413; font-weight:700; white-space:nowrap}
   .slots{display:flex; gap:6px; flex-wrap:wrap; margin:8px 0}
   .slot{background:var(--arc); color:#fff; padding:3px 9px; border-radius:5px; font-size:12px; font-weight:600}
   .pill{display:inline-block; background:var(--moss); color:#fff; padding:1px 7px; border-radius:5px; font-size:11px; margin:1px 2px; font-weight:600}
@@ -284,6 +303,26 @@
     border-radius:9px; padding:12px; font-size:15px; font-weight:800; cursor:pointer; font-family:inherit;
   }
   .helpdone:hover{background:var(--gold)}
+  /* Help modal internal tabs */
+  .helptabs{display:flex; gap:6px; margin:2px 34px 14px 0}
+  .helptab{
+    border:1.5px solid var(--edge); background:var(--parch); color:var(--ink);
+    border-radius:8px 8px 0 0; padding:8px 14px; font-weight:700; font-size:13.5px;
+    cursor:pointer; font-family:inherit; border-bottom-width:2.5px;
+  }
+  .helptab.on{background:var(--blood); color:#fff; border-color:var(--blood)}
+  /* Rulebook source cards */
+  .rulecard{
+    border:1.5px solid var(--edge); border-left:4px solid var(--gold); border-radius:8px;
+    padding:12px 15px; margin-bottom:12px; background:rgba(255,255,255,.5);
+  }
+  .rulecard.flag{border-left-color:var(--blood); background:rgba(124,43,30,.06)}
+  .rulecard h3{margin:0 0 6px; font-size:15px; color:var(--blood)}
+  .rulecard.flag h3{color:var(--blood)}
+  .rulecard p{margin:0; font-size:13.5px; line-height:1.5; color:#4a3d2a}
+  .rulelist{margin:0; padding-left:18px}
+  .rulelist li{font-size:13px; line-height:1.5; color:#4a3d2a; margin-bottom:5px}
+  .rulelist li:last-child{margin-bottom:0}
   /* ---- DM password gate ---- */
   .dmgate{
     display:flex; flex-direction:column; align-items:center; text-align:center;
@@ -539,6 +578,11 @@
     .pcv{font-size:26px}
     .pf.pf-sm{flex:1 1 45%}
 
+    /* Inline modifier bar: wrap tighter, keep inputs tappable on phones */
+    .modbar{gap:8px; padding:8px 10px}
+    .modinput input{width:46px; padding:7px 4px}
+    .modbar-title{flex:1 1 100%; margin-bottom:-2px}
+
     /* Help button/modal sit a little tighter on phones */
     .helpfab{bottom:16px; right:16px; width:48px; height:48px; font-size:24px}
     .helpmodal{padding:22px 18px 18px; border-radius:12px}
@@ -734,6 +778,71 @@ function ProfileProvider({children}){
 function useProfile(){
   return React.useContext(ProfileCtx) || {profile:{...BLANK_PROFILE}, update:()=>{}, updateNested:()=>{}, reset:()=>{}};
 }
+
+/* ============================================================
+   INLINE MODIFIER INPUTS — appear on class & master tabs, and
+   read/write the SAME saved profile as My Character, so editing
+   in either place keeps everything in sync.
+============================================================ */
+const clampModVal = (v)=>{ let n=parseInt(v,10); if(isNaN(n)) n=0; return Math.max(-5, Math.min(12, n)); };
+// One compact ability-mod input bound to profile.mods[statKey].
+function ModInput({statKey}){
+  const {profile, updateNested} = useProfile();
+  const val = (profile.mods && typeof profile.mods[statKey]==="number") ? profile.mods[statKey] : 0;
+  return (
+    <span className="modinput">
+      <span className="modinput-lbl">{statKey.toUpperCase()}</span>
+      <input type="number" min="-5" max="12" value={val}
+        aria-label={statKey.toUpperCase()+" modifier"}
+        onChange={e=>updateNested("mods", statKey, clampModVal(e.target.value))} />
+    </span>
+  );
+}
+// A labeled strip of one or more modifier inputs to pin at the top of a tab.
+function ModBar({statKeys, note}){
+  return (
+    <div className="modbar">
+      <span className="modbar-title">Your modifiers</span>
+      {statKeys.map(k=><ModInput key={k} statKey={k}/>)}
+      <span className="modbar-note">{note || "Synced with 👤 My Character — edit here or there."}</span>
+    </div>
+  );
+}
+// Reads a single ability modifier from the profile (0 if unset).
+function useMod(statKey){
+  const {profile} = useProfile();
+  return (profile.mods && typeof profile.mods[statKey]==="number") ? profile.mods[statKey] : 0;
+}
+// Renders a flat computed total: base + sum of stat mods, showing the breakdown.
+//   base=10 statKeys=["dex","wis"]  →  "15 (10 + DEX +3 + WIS +2)"
+function FlatCalc({base, statKeys}){
+  const {profile} = useProfile();
+  const mods = profile.mods || {};
+  const set = profile && (profile.name || statKeys.some(k=>(mods[k]||0)!==0));
+  const total = base + statKeys.reduce((n,k)=>n+(mods[k]||0), 0);
+  const parts = statKeys.map(k=>`${k.toUpperCase()} ${fmt(mods[k]||0)}`).join(" + ");
+  return (
+    <Roll>{total} <span className="rmlbl">({base} + {parts}{set?"":", mods unset"})</span></Roll>
+  );
+}
+// Renders just the resolved modifier value on its own (e.g. temp HP = CHA mod).
+function BareMod({statKey}){
+  const mod = useMod(statKey);
+  const {profile} = useProfile();
+  const set = profile && (mod!==0 || profile.name);
+  return <Roll>{fmt(mod)} <span className="rmlbl">({statKey.toUpperCase()}{set?"":" mod"})</span></Roll>;
+}
+// Renders a dice formula with the player's actual modifier filled in:
+//   base="1d8" statKey="wis"  →  "1d8 +4 (WIS)"   (or "1d8 + WIS mod" if unset & showPrompt)
+function RolledMod({base, statKey}){
+  const mod = useMod(statKey);
+  const {profile} = useProfile();
+  const set = profile && (mod!==0 || profile.name);
+  return (
+    <Roll>{base} {fmt(mod)} <span className="rmlbl">({statKey.toUpperCase()}{set?"":" mod"})</span></Roll>
+  );
+}
+
 // Proficiency from level (2014 table): +2 (1–4), +3 (5–8), +4 (9–12)...
 function profFromLevel(lv){ return 2 + Math.floor((Math.max(1,Math.min(20,lv)) - 1) / 4); }
 // Effective prof honors a manual override if the player typed one.
@@ -960,12 +1069,41 @@ function KiDCBar({lv}){
 }
 const legend = <div className="legend"><span><span className="conc">Conc</span> = requires concentration (breaks if you take damage and fail a CON save, DC = 10 or half damage taken, whichever is higher; also breaks if you cast another concentration spell)</span><span><span className="rit">Ritual</span> = can be cast as a 10-min ritual without using a slot, if you have the spell prepared/known</span></div>;
 
+// Decide which ability modifier applies to a weapon's damage, given its
+// properties string and a fallback melee stat. Finesse/ranged weapons may use
+// DEX; the player picks the better of STR/DEX for finesse, so we surface the
+// higher of the two. Pure ranged (Ammunition, no Finesse) uses DEX; pure melee
+// uses STR. forceStat overrides everything (e.g. monk unarmed, shillelagh).
+function weaponDmgMod(props, mods, forceStat, choice){
+  const str = mods.str || 0, dex = mods.dex || 0;
+  const better = () => dex >= str ? {key:"DEX", val:dex} : {key:"STR", val:str};
+  if(forceStat) return {key:forceStat.toUpperCase(), val:mods[forceStat]||0};
+  if(choice) return better(); // monk: STR or DEX on any monk weapon
+  const p = (props||"").toLowerCase();
+  const finesse = p.includes("finesse");
+  const ranged  = p.includes("ammunition");
+  if(finesse) return better(); // player's choice — show the stronger option
+  if(ranged) return {key:"DEX", val:dex};
+  return {key:"STR", val:str};
+}
 // Weapon table renderer: rows = [name, dmgDie, dmgType, properties, range/notes]
-function WeaponTable({rows, atkFormula, dmgFormula, note}){
+// forceStat (optional): force every row to use this ability mod for damage.
+function WeaponTable({rows, atkFormula, dmgFormula, note, forceStat, choice}){
+  const {profile} = useProfile();
+  const mods = (profile && profile.mods) || {};
+  const set = profile && (profile.name || Object.values(mods).some(v=>v!==0));
   return (<>
-    <table className="rtable"><thead><tr><th style={{width:'18%'}}>Weapon</th><th style={{width:'12%'}}>Damage</th><th style={{width:'16%'}}>Properties</th><th>Notes / Range</th></tr></thead>
-    <tbody>{rows.map((r,i)=>(<tr key={i}><td className="nm" data-label="Weapon">{r[0]}</td><td data-label="Damage">{r[1]}</td><td data-label="Properties">{r[2]}</td><td data-label="Notes">{r[3]}</td></tr>))}</tbody></table>
-    <div className="note"><b>Attack roll</b> = <Roll>{atkFormula}</Roll> &nbsp;|&nbsp; <b>Damage roll</b> = <Roll>{dmgFormula}</Roll>. {note}</div>
+    <table className="rtable"><thead><tr><th style={{width:'18%'}}>Weapon</th><th style={{width:'14%'}}>Damage</th><th style={{width:'16%'}}>Properties</th><th>Notes / Range</th></tr></thead>
+    <tbody>{rows.map((r,i)=>{
+      const m = weaponDmgMod(r[2], mods, forceStat, choice);
+      return (<tr key={i}>
+        <td className="nm" data-label="Weapon">{r[0]}</td>
+        <td data-label="Damage">{r[1]} <span className="wdmod">{fmt(m.val)} <span className="rmlbl">({m.key}{set?"":" mod"})</span></span></td>
+        <td data-label="Properties">{r[2]}</td>
+        <td data-label="Notes">{r[3]}</td>
+      </tr>);
+    })}</tbody></table>
+    <div className="note"><b>Attack roll</b> = <Roll>{atkFormula}</Roll> &nbsp;|&nbsp; <b>Damage roll</b> = <Roll>{dmgFormula}</Roll>. The modifier shown beside each weapon uses your saved ability scores{forceStat?"":(choice?"; every monk weapon shows whichever of STR/DEX is higher (your choice)":"; finesse weapons show whichever of STR/DEX is higher (your choice)")}. {note}</div>
   </>);
 }
 
@@ -1046,15 +1184,16 @@ const bardCant = [
   ["True Strike",<><C/></>,"30 ft, S, 1 action to cast + 1 round wait. Gain advantage on your very next attack roll against the target before the end of your next turn. Rarely worth the action economy cost in combat."],
 ];
 const bard1 = [
-  ["Healing Word","Bonus Action, 60 ft, V",<>Choose a creature you can see; it regains <Roll>1d4 + CHA mod</Roll> HP. Doesn't cure conditions. Upcast: +<Roll>1d4</Roll> per slot level above 1st.</>],
-  ["Cure Wounds","Action, Touch, V/S",<>Target you touch regains <Roll>1d8 + CHA mod</Roll> HP. No effect on undead/constructs. Upcast: +<Roll>1d8</Roll> per slot level above 1st.</>],
+  ["Healing Word","Bonus Action, 60 ft, V",<>Choose a creature you can see; it regains <RolledMod base="1d4" statKey="cha"/> HP. Doesn't cure conditions. Upcast: +<Roll>1d4</Roll> per slot level above 1st.</>],
+  ["Cure Wounds","Action, Touch, V/S",<>Target you touch regains <RolledMod base="1d8" statKey="cha"/> HP. No effect on undead/constructs. Upcast: +<Roll>1d8</Roll> per slot level above 1st.</>],
   ["Dissonant Whispers","Action, 60 ft, V",<>Target makes a <Roll>WIS save</Roll>; on failure, takes <Roll>3d6</Roll> psychic damage and must immediately use its reaction (if available) to move away from you by the safest route (provoking opportunity attacks). On a success, half damage and no forced movement. Upcast: +<Roll>1d6</Roll> per slot above 1st.</>],
   ["Faerie Fire",<><C/>, Action, 60 ft, V</>,<>20-ft cube; each creature in it makes a <Roll>DEX save</Roll> or becomes outlined in light (visible even invisible) for the duration. Attack rolls against an affected creature have advantage, and it can't benefit from being invisible while outlined.</>],
   ["Tasha's Hideous Laughter",<><C/>, Action, 30 ft, V/S/M</>,<>Target makes a <Roll>WIS save</Roll> (advantage if immune to being distracted, e.g., no sense of humor) or falls prone, incapacitated, and unable to stand for the duration. At end of each of its turns and whenever it takes damage, it repeats the save, ending the effect on success.</>],
   ["Sleep","Action, 90 ft, V/S/M",<>Roll <Roll>5d8</Roll>; total = HP of creatures affected, starting with the one with the lowest current HP. Unconscious creatures with HP ≤ remaining total fall asleep (unconscious) until the spell ends, they take damage, or someone uses an action to shake/slap them awake. Doesn't affect undead or creatures immune to being charmed. Upcast: +<Roll>2d8</Roll> per slot above 1st.</>],
   ["Charm Person","Action, 30 ft, V/S",<>Target makes a <Roll>WIS save</Roll> (advantage if you or your allies are fighting it) or is charmed by you for 1 hr or until you/your allies harm it. It knows it was charmed once the spell ends.</>],
   ["Bane",<><C/>, Action, 30 ft, V/S/M</>,<>Up to 3 creatures make a <Roll>CHA save</Roll> or, for the duration, subtract <Roll>1d4</Roll> from every attack roll and saving throw they make. Upcast: +1 target per slot above 1st.</>],
-  ["Heroism",<><C/>, Action, Touch, V/S</>,<>Willing creature is immune to being frightened and gains <Roll>CHA mod</Roll> temp HP at the start of each of its turns for the duration. When the spell ends, it loses any remaining temp HP from this spell. Upcast: +1 target per slot above 1st.</>],
+  ["Command","Action, 60 ft, V",<>Target makes a <Roll>WIS save</Roll> or obeys a single-word command on its next turn: Approach, Drop, Flee, Grovel, or Halt (specific mechanical effects for each; creature takes no action if the command is nonsensical). Upcast: +1 target per slot above 1st.</>],
+  ["Heroism",<><C/>, Action, Touch, V/S</>,<>Willing creature is immune to being frightened and gains <BareMod statKey="cha"/> temp HP at the start of each of its turns for the duration. When the spell ends, it loses any remaining temp HP from this spell. Upcast: +1 target per slot above 1st.</>],
   ["Thunderwave",<><C/> — instant, Action, Self (15-ft cube)</>,<>V/S. Each creature in a 15-ft cube from you makes a CON save; on a fail, <Roll>2d8</Roll> thunder damage and pushed 10 ft away; on success, half damage and no push. Unsecured objects in the area are also pushed. Upcast: +1d8 per slot above 1st.</>],
   ["Comprehend Languages",<><RIT/>, Action, Self, V/S/M</>,<>For 1 hr, you understand the literal meaning of any spoken language you hear, and any written language you touch (1 min per page to read). Doesn't decode magically encrypted text or let you speak the language.</>],
   ["Detect Magic",<><C/> <RIT/>, Action, Self, V/S</>,<>For 10 min, sense the presence of magic within 30 ft. If you sense it, use your action to see a faint aura around the visible magic source/creature and learn its school of magic if any.</>],
@@ -1130,9 +1269,9 @@ const clrCant = [
   ["Thaumaturgy","Action, 30 ft, V",<>Choose one minor divine effect for 1 min (booming voice, flickering flames, tremor, unlocked door creak, eyes glimmer, spectral sound) — no damage, purely flavor/utility.</>],
 ];
 const clr1 = [
-  ["Cure Wounds","Domain, Always Prepared. Action, Touch, V/S",<>Target regains <Roll>1d8 + WIS mod</Roll> HP, +Disciple of Life bonus (<Roll>+2 + slot level</Roll> since it's a healing spell of 1st level+). Upcast: +1d8 per slot above 1st.</>],
+  ["Cure Wounds","Domain, Always Prepared. Action, Touch, V/S",<>Target regains <RolledMod base="1d8" statKey="wis"/> HP, +Disciple of Life bonus (<Roll>+2 + slot level</Roll> since it's a healing spell of 1st level+). Upcast: +1d8 per slot above 1st.</>],
   ["Bless",<>Domain, Always Prepared. <C/>, Action, 30 ft, V/S/M</>,<>Up to 3 creatures add <Roll>1d4</Roll> to every attack roll and saving throw for the duration (1 min). Upcast: +1 target per slot above 1st.</>],
-  ["Healing Word","Bonus Action, 60 ft, V",<>Target regains <Roll>1d4 + WIS mod</Roll> HP + Disciple of Life bonus. Upcast: +1d4 per slot above 1st.</>],
+  ["Healing Word","Bonus Action, 60 ft, V",<>Target regains <RolledMod base="1d4" statKey="wis"/> HP + Disciple of Life bonus. Upcast: +1d4 per slot above 1st.</>],
   ["Guiding Bolt","Action, 120 ft, V/S",<>Ranged spell attack: on a hit, <Roll>4d6</Roll> radiant damage, and the next attack roll made against the target before the end of your next turn has advantage. Upcast: +1d6 per slot above 1st.</>],
   ["Inflict Wounds","Action, Touch, V/S",<>Melee spell attack: on a hit, <Roll>3d10</Roll> necrotic damage. Upcast: +1d10 per slot above 1st.</>],
   ["Command","Action, 60 ft, V",<>Target makes a <Roll>WIS save</Roll> or obeys a single-word command on its next turn: Approach, Drop, Flee, Grovel, or Halt (specific mechanical effects for each; creature takes no action if the command is nonsensical). Upcast: +1 target per slot above 1st.</>],
@@ -1145,9 +1284,9 @@ const clr1 = [
   ["Purify Food and Drink",<><RIT/>, Action, 10 ft, V/S</>,<>All nonmagical food & drink in a 5-ft-radius sphere is purified of poison and disease.</>],
 ];
 const clr2 = [
-  ["Spiritual Weapon","Domain, Always Prepared. Bonus Action, 60 ft, V/S",<>Spectral weapon appears and makes a melee spell attack against a target within 5 ft: on hit, <Roll>1d8 + WIS mod</Roll> force damage. On subsequent turns, use a bonus action to move it 20 ft and attack again. Upcast: +1d8 per two slot levels above 2nd.</>],
+  ["Spiritual Weapon","Domain, Always Prepared. Bonus Action, 60 ft, V/S",<>Spectral weapon appears and makes a melee spell attack against a target within 5 ft: on hit, <RolledMod base="1d8" statKey="wis"/> force damage. On subsequent turns, use a bonus action to move it 20 ft and attack again. Upcast: +1d8 per two slot levels above 2nd.</>],
   ["Lesser Restoration","Domain, Always Prepared. Action, Touch, V/S",<>End one of: blinded, deafened, paralyzed, or poisoned on the target.</>],
-  ["Prayer of Healing","Action, 30 ft, V, 10 min cast",<>Up to 6 creatures each regain <Roll>2d8 + WIS mod</Roll> HP + Disciple bonus each. Upcast: +1d8 per slot above 2nd.</>],
+  ["Prayer of Healing","Action, 30 ft, V, 10 min cast",<>Up to 6 creatures each regain <RolledMod base="2d8" statKey="wis"/> HP + Disciple bonus each. Upcast: +1d8 per slot above 2nd.</>],
   ["Aid","Action, 30 ft, V/S/M",<>Up to 3 creatures gain +5 to current & max HP for 8 hr. Upcast: +5 per slot above 2nd.</>],
   ["Hold Person",<><C/>, Action, 60 ft, V/S/M</>,<>Humanoid target makes a <Roll>WIS save</Roll> or is paralyzed for the duration, repeating the save each turn.</>],
   ["Silence",<><C/> <RIT/>, Action, 60 ft, V/S</>,<>20-ft radius of magical silence; blocks Verbal-component spellcasting inside.</>],
@@ -1165,7 +1304,7 @@ const clr3 = [
   ["Spirit Guardians",<><C/>, Action, Self (15-ft radius), V/S/M</>,<>Spirits move with you for the duration; each enemy that enters/starts in the aura makes a <Roll>WIS save</Roll> or takes <Roll>3d8</Roll> radiant (good) or necrotic (evil) damage (your choice at casting) and has its speed halved in the aura; half damage on a success and no speed reduction. Upcast: +1d8 per slot above 3rd.</>],
   ["Revivify","Domain, Always Prepared. Action, Touch, V/S/M (300 gp diamond, consumed)",<>Creature that died within the last minute returns to life with 1 HP (doesn't restore missing body parts, or fix the cause of death like poison still in system).</>],
   ["Beacon of Hope",<>Domain, Always Prepared. <C/>, Action, 30 ft, V/S</>,<>Chosen creatures have advantage on WIS saves and death saving throws, and regain the maximum possible HP from any healing they receive, for the duration.</>],
-  ["Mass Healing Word","Bonus Action, 60 ft, V",<>Up to 6 creatures you choose each regain <Roll>1d4 + WIS mod</Roll> HP + Disciple bonus. Upcast: +1d4 per slot above 3rd.</>],
+  ["Mass Healing Word","Bonus Action, 60 ft, V",<>Up to 6 creatures you choose each regain <RolledMod base="1d4" statKey="wis"/> HP + Disciple bonus. Upcast: +1d4 per slot above 3rd.</>],
   ["Dispel Magic","Action, 120 ft, V/S",<>End one spell ≤3rd level on the target automatically; for higher, <Roll>ability check vs DC 10 + spell level</Roll>.</>],
   ["Bestow Curse",<><C/>, Action, Touch, V/S/M</>,<>WIS save or cursed for the duration (choose: disadvantage on ability checks/saves of one ability, disadvantage on attacks vs you, WIS save each turn or lose its turn, or your attacks deal +1d8 necrotic to it).</>],
   ["Remove Curse","Action, Touch, V/S",<>Ends all curses on a creature, or if on an object, breaks its curse (but the item's other magic remains).</>],
@@ -1206,8 +1345,8 @@ const druCant = [
   ["Mending","Action, Touch, V/S/M, 1 min cast","Repair a single break/tear in an object."],
 ];
 const dru1 = [
-  ["Cure Wounds","Action, Touch, V/S",<>Target regains <Roll>1d8 + WIS mod</Roll> HP. Upcast: +1d8 per slot above 1st.</>],
-  ["Healing Word","Bonus Action, 60 ft, V",<>Target regains <Roll>1d4 + WIS mod</Roll> HP. Upcast: +1d4 per slot above 1st.</>],
+  ["Cure Wounds","Action, Touch, V/S",<>Target regains <RolledMod base="1d8" statKey="wis"/> HP. Upcast: +1d8 per slot above 1st.</>],
+  ["Healing Word","Bonus Action, 60 ft, V",<>Target regains <RolledMod base="1d4" statKey="wis"/> HP. Upcast: +1d4 per slot above 1st.</>],
   ["Faerie Fire",<><C/>, Action, 60 ft, V</>,<>20-ft cube; each creature in it makes a <Roll>DEX save</Roll> or is outlined in light (visible even if invisible) for the duration; attacks against outlined creatures have advantage, and they can't benefit from being invisible.</>],
   ["Entangle",<><C/>, Action, 90 ft, V/S</>,<>Grasping weeds/vines fill a 20-ft square; each creature there makes a <Roll>STR save</Roll> or is restrained (repeats save each turn to escape); difficult terrain for all.</>],
   ["Thunderwave",<><C/>—instant, Action, Self (15-ft cube), V/S</>,<>CON save, <Roll>2d8</Roll> thunder + pushed 10 ft; half & no push on success. Upcast: +1d8 per slot above 1st.</>],
@@ -1295,7 +1434,7 @@ const wiz1 = [
   ["Magic Missile","Action, 120 ft, V/S",<>Three darts, each automatically hitting (no attack roll) for <Roll>1d4+1</Roll> force damage; you can split them among targets. Upcast: +1 dart per slot above 1st.</>],
   ["Shield",<><span className="pill">Reaction</span>, Self, V/S</>,<>Trigger: hit by an attack or targeted by Magic Missile. Gain <Roll>+5 AC</Roll> until the start of your next turn (retroactively can turn a hit into a miss), and immunity to Magic Missile for the duration.</>],
   ["Burning Hands","Action, Self (15-ft cone), V/S",<>DEX save, <Roll>3d6</Roll> fire damage (half on success), ignites flammable objects not worn/carried. Upcast: +1d6 per slot above 1st.</>],
-  ["Mage Armor","Action, Touch, V/S/M",<>Unarmored target's AC becomes <Roll>13 + DEX mod</Roll> for 8 hr (doesn't stack with actual armor).</>],
+  ["Mage Armor","Action, Touch, V/S/M",<>Unarmored target's AC becomes <FlatCalc base={13} statKeys={["dex"]}/> for 8 hr (doesn't stack with actual armor).</>],
   ["Sleep","Action, 90 ft, V/S/M",<>Roll <Roll>5d8</Roll>; that many total HP of creatures (lowest current HP first) fall unconscious. No effect on undead or creatures immune to charm. Upcast: +2d8 per slot above 1st.</>],
   ["Charm Person","Action, 30 ft, V/S",<>WIS save (advantage if fighting you/allies) or charmed for 1 hr.</>],
   ["Color Spray","Action, Self (15-ft cone), V/S/M",<>Roll <Roll>6d10</Roll>; that many total HP of creatures in the cone (lowest HP first) are blinded until end of your next turn. Upcast: +2d10 per slot above 1st.</>],
@@ -1639,7 +1778,7 @@ function MartialArtsKiGuide({lv}){
         <p><b>The short version:</b> Ki points are a once-per-rest resource pool that fuels your strongest moves — think of them as "special move" charges. You get a number of points equal to your monk level (starting at 2nd level), and every point spent comes back on a short <i>or</i> long rest, so don't be shy about using them.</p>
         <ul>
           <li><b>Current pool at level {showLv}:</b> {kiPool||'0 — Ki unlocks at level 2'} points.</li>
-          <li><b>Ki Save DC</b> (used whenever an ability forces an enemy to resist it): <Roll>8 + prof + WIS mod</Roll>.</li>
+          <li><b>Ki Save DC</b> (used whenever an ability forces an enemy to resist it): <Roll>8 + prof + WIS mod</Roll> = <FlatCalc base={8 + (showLv>=5?3:2)} statKeys={["wis"]}/> at {lv?"your current level":"level 7"}.</li>
           <li><b>Refresh:</b> all spent ki returns after a short <i>or</i> long rest — unlike spell slots, you can safely spend it every fight.</li>
         </ul>
       </div>
@@ -1680,7 +1819,7 @@ function monkActions(lv, sub, q){
   }
   if(lv>=3){
     acts.push(<Act key="dm" name="Deflect Missiles" meta="Reaction · Trigger: hit by a ranged weapon attack">
-      <p>Reduce the damage you take from the triggering ranged weapon attack by <Roll>1d10 + DEX mod + monk level</Roll>. If this reduces the damage to 0, you catch the missile (if it's small enough to hold in one hand and you have a free hand).</p>
+      <p>Reduce the damage you take from the triggering ranged weapon attack by <RolledMod base="1d10" statKey="dex"/> <Roll>+ {lv} (monk level)</Roll>. If this reduces the damage to 0, you catch the missile (if it's small enough to hold in one hand and you have a free hand).</p>
       <p>If you catch it, you may spend 1 ki point as part of the same reaction to make a ranged attack with the weapon you just caught, using it as if it were a monk weapon: attack roll <Roll>d20 + DEX + prof</Roll>, damage <Roll>{maDie} + DEX</Roll>, range 20/60 ft, targeting a creature within range that you can see.</p>
     </Act>);
   }
@@ -1851,7 +1990,7 @@ function MonkWeaponsPanel(sub){
     : "Way of the Four Elements grants no extra weapon proficiencies — your subclass power is elemental disciplines. Note that Fangs of the Fire Snake converts your unarmed strikes to fire damage and extends their reach by 10 ft.";
   return (<>
     <Sec title="Standard Monk Weapons">
-      <WeaponTable rows={monkWeapons} atkFormula="d20 + STR or DEX (your choice) + prof" dmgFormula="Martial Arts die OR the weapon's own die, whichever is higher, + same modifier" note={extra} />
+      <WeaponTable rows={monkWeapons} choice atkFormula="d20 + STR or DEX (your choice) + prof" dmgFormula="Martial Arts die OR the weapon's own die, whichever is higher, + same modifier" note={extra} />
     </Sec>
   </>);
 }
@@ -2049,6 +2188,7 @@ function MasterSpells(){
       ))}
     </div>
     <StarBar onlyStarred={onlyStarred} setOnlyStarred={setOnlyStarred} scopeLabel={onlyStarred?"starred spells only":"all spells"}/>
+    <ModBar statKeys={["str","dex","con","int","wis","cha"]} note="These fill in the healing/damage/AC numbers in the spell text below. Synced with 👤 My Character." />
     {!searching && who==="all" && !onlyStarred && <QuickMath/>}
     {groups.length===0 ? (
       <div className="emptymsg">{onlyStarred && !searching
@@ -2447,6 +2587,7 @@ function MasterWeapons(){
    Opens from a floating ? button; reachable from any tab.
 ============================================================ */
 function HelpModal({onClose}){
+  const [tab, setTab] = useState("how");
   // Close on Escape for keyboard/desktop users.
   useEffect(()=>{
     const onKey = (e)=>{ if(e.key==="Escape") onClose(); };
@@ -2455,8 +2596,14 @@ function HelpModal({onClose}){
   }, [onClose]);
   return (
     <div className="helpoverlay" onClick={onClose}>
-      <div className="helpmodal" onClick={e=>e.stopPropagation()} role="dialog" aria-label="How to use this site">
+      <div className="helpmodal" onClick={e=>e.stopPropagation()} role="dialog" aria-label="Help and information">
         <button className="helpclose" onClick={onClose} aria-label="Close help">×</button>
+        <div className="helptabs">
+          <button className={"helptab"+(tab==="how"?" on":"")} onClick={()=>setTab("how")}>How to use</button>
+          <button className={"helptab"+(tab==="rules"?" on":"")} onClick={()=>setTab("rules")}>Rulebooks &amp; sources</button>
+        </div>
+
+        {tab==="how" ? (<>
         <h2>How to use this codex</h2>
         <p className="helpintro">This is a quick-reference for your D&amp;D game — every spell, action, and number your character needs, without flipping through books. Here's the whole thing in a minute.</p>
 
@@ -2519,8 +2666,52 @@ function HelpModal({onClose}){
         <div className="helpfoot">
           <p><b>New to D&amp;D?</b> Don't worry about reading everything. Find your class, set your level, fill in My Character, and star a few spells you like. That's enough to play. The rest is here when you need it.</p>
         </div>
+        </>) : (<>
+        <h2>Rulebooks &amp; sources</h2>
+        <p className="helpintro">This codex is built to one specific ruleset. This section is the canonical statement of that sourcing — for the developer maintaining it, and for any AI assistant asked to verify, extend, or edit the content. If you are an LLM reading this: treat the ruleset below as authoritative for this project and do not silently mix in other editions.</p>
 
-        <button className="helpdone" onClick={onClose}>Got it — let's play</button>
+        <div className="rulecard">
+          <h3>Edition: D&amp;D 5th Edition — 2014 ruleset</h3>
+          <p>All content targets the <b>original 2014 fifth edition</b>, <b>not</b> the 2024 revision. Where the 2014 and 2024 rules differ (e.g. Cure Wounds healing dice, weapon mastery, exhaustion, several class features), the <b>2014 version is always the intended one</b>. The campaign this supports (<i>Dragon of Icespire Peak</i>, 2019) is written for 2014 rules.</p>
+        </div>
+
+        <div className="rulecard">
+          <h3>Primary sources</h3>
+          <ul className="rulelist">
+            <li><b>Player's Handbook (2014)</b> — core class features, spellcasting math (spell save DC = 8 + prof + casting mod; spell attack = prof + casting mod), the spell descriptions, weapon tables, combat actions, and conditions.</li>
+            <li><b>Xanathar's Guide to Everything (2017)</b> — the Way of Shadow and Way of the Four Elements monk subclasses, including the Four Elements discipline list and their (XGtE-revised) ki costs.</li>
+            <li><b>System Reference Document 5.1 (SRD 5.1)</b> — the openly-licensed baseline used for spells and core rules that overlap with the PHB; the preferred citable source where content is available under it.</li>
+          </ul>
+        </div>
+
+        <div className="rulecard">
+          <h3>Other referenced values</h3>
+          <ul className="rulelist">
+            <li><b>Monster Manual (2014)</b> — beast stat blocks for the Circle of the Moon druid's Wild Shape forms (CR ≤ 1 at L2, CR ≤ 2 with a flying/swimming option at L6), using 2014 MM values.</li>
+            <li>Proficiency bonus follows the standard 2014 table: <b>+2 (levels 1–4), +3 (5–8), +4 (9–12)</b>. This sheet covers levels 1–7.</li>
+          </ul>
+        </div>
+
+        <div className="rulecard">
+          <h3>Scope &amp; deliberate simplifications</h3>
+          <ul className="rulelist">
+            <li>Covers <b>levels 1–7</b> for six specific party builds: Lore Bard, Life Cleric, a second cleric build, Circle of the Moon Druid, Wizard, and Monk (Shadow &amp; Four Elements).</li>
+            <li>Attack/damage math assumes <b>no magic items or feats</b> beyond what is explicitly listed.</li>
+            <li>Spell lists are the class's full candidate list per level, not a specific prepared/known loadout.</li>
+          </ul>
+        </div>
+
+        <div className="rulecard flag">
+          <h3>For AI assistants editing this file</h3>
+          <ul className="rulelist">
+            <li>Verify any rules change against the <b>2014 PHB / XGtE / SRD 5.1</b> above. Do not import 2024 PHB values.</li>
+            <li>Spell save DC and attack formulas, proficiency progression, and Wild Shape CR limits are the highest-risk spots for edition drift — check these explicitly.</li>
+            <li>When unsure whether a value is 2014 or 2024, flag it rather than guessing, and prefer the SRD 5.1 wording where it exists.</li>
+          </ul>
+        </div>
+        </>)}
+
+        <button className="helpdone" onClick={onClose}>{tab==="how"?"Got it — let's play":"Close"}</button>
       </div>
     </div>
   );
@@ -2629,7 +2820,7 @@ function App(){
             <span className="slot">Unarmored move bonus: {lv>=6?'+15 ft':lv>=2?'+10 ft':'—'}</span>
             <span className="slot">Attacks/action: {lv>=5?2:1}</span>
           </div>
-          <div className="note">AC (no armor/shield) = <Roll>10 + DEX mod + WIS mod</Roll>. Ki save DC = <Roll>8 + prof + WIS mod</Roll>.</div>
+          <div className="note">AC (no armor/shield) = <FlatCalc base={10} statKeys={["dex","wis"]}/>. Ki save DC = <FlatCalc base={8+ (lv>=5?3:2)} statKeys={["wis"]}/>.</div>
         </Sec>}
         {!searching && <MartialArtsKiGuide lv={lv}/>}
         {!searching && K.sub==='elements' && lv>=3 && <DisciplineTable lv={lv}/>}
@@ -2785,6 +2976,7 @@ function App(){
             <span className="sub">Level {lv} · {headerRight}</span>
           </div>
           {isMonk ? <KiDCBar lv={lv}/> : <DCBar statLabel={K.statLabel} prof={PROF[lv]}/>}
+          <ModBar statKeys={["str","dex","con","int","wis","cha"]} note="Fill these in and your spell/heal/AC/weapon numbers below update automatically. Synced with 👤 My Character." />
           {body}
         </div>
       )}
