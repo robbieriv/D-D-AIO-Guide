@@ -62,6 +62,37 @@
   .tag{display:inline-block; font-size:11px; background:var(--ink); color:var(--parch); padding:1px 8px; border-radius:20px; font-style:normal}
   .ki{display:inline-block; background:var(--arc); color:#fff; padding:1px 8px; border-radius:5px; font-size:11px; font-weight:700}
   .warn{background:var(--blood); color:#fff; padding:1px 7px; border-radius:5px; font-size:11px; font-weight:600}
+  /* Casting-time icons: green circle = Action, orange triangle = Bonus Action */
+  .caticon{display:inline-block; vertical-align:middle; margin-right:4px; line-height:1}
+  .caticon.act{width:11px; height:11px; border-radius:50%; background:#2e8b3d; box-shadow:inset 0 0 0 1px rgba(255,255,255,.35), 0 0 3px rgba(46,139,61,.5)}
+  .caticon.bonus{width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-bottom:11px solid #e08a1e; filter:drop-shadow(0 0 2px rgba(224,138,30,.5)); border-radius:1px}
+  /* Ki points resource panel — bright, tactile, resource-tracker feel */
+  .kicard{
+    margin:0 0 12px; padding:14px 16px; border-radius:12px;
+    background:linear-gradient(150deg,#4a3aa0 0%,#3a2d6b 55%,#2a2050 100%);
+    border:2px solid #7a68d8; box-shadow:0 4px 14px rgba(40,28,90,.35), inset 0 1px 0 rgba(255,255,255,.18);
+    color:#f3f0ff;
+  }
+  .kicard-top{display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:6px 12px; margin-bottom:10px}
+  .kicard-name{font-size:17px; font-weight:800; letter-spacing:.02em; color:#fff; display:flex; align-items:center; gap:8px}
+  .kicard-name .spark{font-size:18px; filter:drop-shadow(0 0 5px rgba(180,160,255,.9))}
+  .kicard-pool{font-size:12.5px; font-weight:700; color:#d7ccff}
+  .kicard-pool b{color:#fff; font-size:14px}
+  .kipips{display:flex; flex-wrap:wrap; gap:7px; margin:10px 0 12px}
+  .kipip{
+    width:26px; height:26px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#c9b6ff,#8a72e6 60%,#6a52c8);
+    border:1.5px solid #d9ccff; box-shadow:0 0 8px rgba(170,140,255,.7), inset 0 1px 2px rgba(255,255,255,.6);
+    display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#2a2050;
+  }
+  .kipip.empty{background:rgba(255,255,255,.06); border:1.5px dashed rgba(215,204,255,.4); box-shadow:none; color:transparent}
+  .kicard-stats{display:flex; flex-wrap:wrap; gap:8px}
+  .kistat{flex:1 1 140px; background:rgba(255,255,255,.1); border:1px solid rgba(215,204,255,.32); border-radius:8px; padding:8px 10px}
+  .kistat .kl{font-size:10.5px; text-transform:uppercase; letter-spacing:.1em; color:#c3b6f5; font-weight:700}
+  .kistat .kv{font-size:16px; font-weight:800; color:#fff; margin-top:2px}
+  .kistat .kv .rmlbl{color:#d7ccff; font-weight:700}
+  .kistat .ks{font-size:11px; color:#cec3f5; margin-top:1px}
+  .kicard-foot{font-size:12px; color:#d7ccff; margin-top:10px; line-height:1.5}
 
   .roll{font-family:"Courier New",monospace; background:var(--ink); color:#ffe9a8; padding:1px 6px; border-radius:4px; font-size:12.5px; white-space:nowrap}
 
@@ -687,10 +718,46 @@ const RIT = () => <span className="rit">Ritual</span>;
 const Act = ({name, meta, children}) => (
   <div className="actcard">
     <div className="ttl"><b>{name}</b></div>
-    {meta && <div className="meta">{meta}</div>}
+    {meta && <div className="meta">{withCastIcons(meta)}</div>}
     <div className="body">{children}</div>
   </div>
 );
+
+// Bright, resource-tracker style panel for the monk's ki pool.
+// Renders one glowing pip per point (pool = monk level), plus save DC & refresh.
+function KiPointsCard({lv}){
+  const prof = lv>=5?3:2;
+  const pool = lv; // ki points = monk level (from level 2)
+  const {profile} = useProfile();
+  const wis = (profile && profile.mods && typeof profile.mods.wis==="number") ? profile.mods.wis : 0;
+  const set = profile && (wis!==0 || profile.name);
+  const dc = 8 + prof + wis;
+  const pips = Array.from({length: Math.max(pool,0)});
+  return (
+    <div className="kicard">
+      <div className="kicard-top">
+        <div className="kicard-name"><span className="spark">✦</span> Ki Points</div>
+        <div className="kicard-pool"><b>{pool}</b> point{pool===1?"":"s"} · refresh on a short <i>or</i> long rest</div>
+      </div>
+      <div className="kipips" aria-label={pool+" ki points"}>
+        {pips.map((_,i)=><div key={i} className="kipip">✦</div>)}
+      </div>
+      <div className="kicard-stats">
+        <div className="kistat">
+          <div className="kl">Ki Save DC</div>
+          <div className="kv">{set ? dc : <>8 + {prof} + WIS</>} {set && <span className="rmlbl">(8 + {prof} prof + {fmt(wis)} WIS)</span>}</div>
+          <div className="ks">Targets resist with a save (Stunning Strike, Water Whip, Fist of Unbroken Air…).</div>
+        </div>
+        <div className="kistat">
+          <div className="kl">Pool Size</div>
+          <div className="kv">{pool}</div>
+          <div className="ks">Equal to your monk level. Spend freely — it all comes back on any rest.</div>
+        </div>
+      </div>
+      <div className="kicard-foot">Many features below spend ki. All expended points return on a short or long rest.{set?"":" Enter your WIS modifier in 👤 My Character to see your exact save DC."}</div>
+    </div>
+  );
+}
 
 /* ============================================================
    STARRED SPELLS — persistent favorites across tabs & sessions
@@ -786,15 +853,43 @@ function useProfile(){
 ============================================================ */
 const clampModVal = (v)=>{ let n=parseInt(v,10); if(isNaN(n)) n=0; return Math.max(-5, Math.min(12, n)); };
 // One compact ability-mod input bound to profile.mods[statKey].
+// Keeps a local draft string so the field can be emptied or hold an
+// in-progress "-" without snapping to 0, and only commits a clamped
+// number to the shared profile on change/blur.
 function ModInput({statKey}){
   const {profile, updateNested} = useProfile();
-  const val = (profile.mods && typeof profile.mods[statKey]==="number") ? profile.mods[statKey] : 0;
+  const stored = (profile.mods && typeof profile.mods[statKey]==="number") ? profile.mods[statKey] : 0;
+  const [draft, setDraft] = useState(String(stored));
+  const [editing, setEditing] = useState(false);
+  // When the profile changes elsewhere (e.g. My Character tab) and we're not
+  // mid-edit here, mirror the new value into the field.
+  React.useEffect(()=>{ if(!editing) setDraft(String(stored)); }, [stored, editing]);
+  const commit = (raw)=>{
+    // Empty or a lone sign means "no value yet" → treat as 0 in the profile,
+    // but leave the field itself for the user to keep typing.
+    if(raw==="" || raw==="-" || raw==="+"){ updateNested("mods", statKey, 0); return; }
+    updateNested("mods", statKey, clampModVal(raw));
+  };
   return (
     <span className="modinput">
       <span className="modinput-lbl">{statKey.toUpperCase()}</span>
-      <input type="number" min="-5" max="12" value={val}
+      <input type="text" inputMode="numeric" pattern="-?[0-9]*"
+        value={draft}
         aria-label={statKey.toUpperCase()+" modifier"}
-        onChange={e=>updateNested("mods", statKey, clampModVal(e.target.value))} />
+        onFocus={()=>setEditing(true)}
+        onChange={e=>{
+          let v = e.target.value;
+          // Allow only an optional leading minus and digits while typing.
+          if(!/^-?\d*$/.test(v)) return; // ignore stray characters
+          setDraft(v);
+          commit(v);
+        }}
+        onBlur={e=>{
+          setEditing(false);
+          const n = clampModVal(e.target.value);
+          setDraft(String(n));
+          updateNested("mods", statKey, n);
+        }} />
     </span>
   );
 }
@@ -854,6 +949,36 @@ const fmt = (n)=> (n>=0?"+":"")+n;  // signed display, e.g. +3 / -1
 const CAST_LABEL = {int:"Intelligence", wis:"Wisdom", cha:"Charisma"};
 const ABILITIES = [["str","STR"],["dex","DEX"],["con","CON"],["int","INT"],["wis","WIS"],["cha","CHA"]];
 
+// Ability-mod input for the My Character tab. Same local-draft behavior as
+// ModInput (can be emptied / hold a lone "-"), but keeps the .pmod label layout.
+function PMod({statKey, label}){
+  const {profile, updateNested} = useProfile();
+  const stored = (profile.mods && typeof profile.mods[statKey]==="number") ? profile.mods[statKey] : 0;
+  const [draft, setDraft] = useState(String(stored));
+  const [editing, setEditing] = useState(false);
+  React.useEffect(()=>{ if(!editing) setDraft(String(stored)); }, [stored, editing]);
+  return (
+    <label className="pmod"><span>{label}</span>
+      <input type="text" inputMode="numeric" pattern="-?[0-9]*" value={draft}
+        aria-label={label+" modifier"}
+        onFocus={()=>setEditing(true)}
+        onChange={e=>{
+          let v = e.target.value;
+          if(!/^-?\d*$/.test(v)) return;
+          setDraft(v);
+          if(v==="" || v==="-" || v==="+"){ updateNested("mods", statKey, 0); }
+          else updateNested("mods", statKey, clampModVal(v));
+        }}
+        onBlur={e=>{
+          setEditing(false);
+          const n = clampModVal(e.target.value);
+          setDraft(String(n));
+          updateNested("mods", statKey, n);
+        }} />
+    </label>
+  );
+}
+
 function ProfilePanel(){
   const {profile, update, updateNested, reset} = useProfile();
   const p = profile;
@@ -863,9 +988,6 @@ function ProfilePanel(){
   const spellAtk = prof + castMod;
   const passivePerc = 10 + (p.mods.wis||0) + (p.perceptionProf ? prof : 0);
   const initiative = p.mods.dex || 0;
-
-  // Small helper for the -5..+10 mod stepper inputs
-  const clampMod = (v)=>{ let n=parseInt(v,10); if(isNaN(n)) n=0; return Math.max(-5, Math.min(12, n)); };
 
   return (
     <div className="profile">
@@ -896,10 +1018,7 @@ function ProfilePanel(){
       <div className="psub">Ability modifiers</div>
       <div className="pmods">
         {ABILITIES.map(([k,lbl])=>(
-          <label key={k} className="pmod"><span>{lbl}</span>
-            <input type="number" min="-5" max="12" value={p.mods[k]}
-              onChange={e=>updateNested("mods", k, clampMod(e.target.value))} />
-          </label>
+          <PMod key={k} statKey={k} label={lbl} />
         ))}
       </div>
 
@@ -965,6 +1084,30 @@ function StarBtn({id, mobile}){
   );
 }
 
+// Casting-time icons. Reuses the module-level nodeText() to scan an arbitrary
+// React node (string or JSX fragment) for casting-time words.
+const ActIcon  = () => <span className="caticon act" title="Action" aria-label="Action"></span>;
+const BonusIcon = () => <span className="caticon bonus" title="Bonus Action" aria-label="Bonus Action"></span>;
+// Given a casting-time / type node, return leading icon(s) for it: an orange
+// triangle for Bonus Action and/or a green circle for Action. Handles entries
+// that mention both (e.g. "Action then Bonus Action").
+function castIcons(node){
+  const t = nodeText(node).toLowerCase();
+  const hasBonus = t.includes("bonus action");
+  // Strip phrases where "action" is prose, not a casting time, before testing:
+  // "bonus action" (counted separately) and "attack action" (a reference, e.g.
+  // a passive that keys off taking the Attack action).
+  const stripped = t.replace(/bonus action/g, "").replace(/attack action/g, "");
+  const hasAction = /\baction\b/.test(stripped);
+  if(!hasAction && !hasBonus) return null;
+  return (<>{hasAction && <ActIcon/>}{hasBonus && <BonusIcon/>}</>);
+}
+// Prefix a Type/meta node with its casting-time icon(s).
+function withCastIcons(node){
+  const ic = castIcons(node);
+  return ic ? <>{ic}{node}</> : node;
+}
+
 const SpellTable = ({rows}) => {
   const {stars} = useStars();
   return (
@@ -974,7 +1117,7 @@ const SpellTable = ({rows}) => {
     return (<tr key={i} className={stars.has(id)?"starred":""}>
       <td className="starcell" data-label="Star"><StarBtn id={id}/></td>
       <td className="nm" data-label="Spell">{r[0]}<StarBtn id={id} mobile/></td>
-      <td data-label="Type">{r[1]}</td>
+      <td data-label="Type">{withCastIcons(r[1])}</td>
       <td data-label="Effect">{r[2]}</td>
     </tr>);
   })}</tbody></table>
@@ -996,6 +1139,25 @@ function DCBar({statLabel, prof}){
   // player has actually set up their profile (a true 0 mod with a name still shows).
   const myDC = 8 + prof + myMod;
   const myAtk = prof + myMod;
+  // Once the player has entered stats, show only the resolved numbers — the
+  // generic formula boxes are dropped to avoid redundancy and save space.
+  if(entered){
+    return (
+      <div className="dcbar">
+        <div className="dcitem yours">
+          <div className="lbl">Your Spell Save DC</div>
+          <div className="val">{myDC}</div>
+          <div className="sub">8 + prof({prof}) + {statLabel}({fmt(myMod)})</div>
+        </div>
+        <div className="dcdivider mine"></div>
+        <div className="dcitem yours">
+          <div className="lbl">Your Spell Attack</div>
+          <div className="val">d20 {fmt(myAtk)}</div>
+          <div className="sub">prof({prof}) + {statLabel}({fmt(myMod)})</div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="dcbar">
       <div className="dcitem">
@@ -1009,25 +1171,10 @@ function DCBar({statLabel, prof}){
         <div className="val">d20 +{atk} + {statLabel} mod</div>
         <div className="sub">= d20 + prof({prof}) + {statLabel}</div>
       </div>
-      {entered ? (<>
-        <div className="dcdivider mine"></div>
-        <div className="dcitem yours">
-          <div className="lbl">Your Spell Save DC</div>
-          <div className="val">{myDC}</div>
-          <div className="sub">8 + prof({prof}) + {statLabel}({fmt(myMod)})</div>
-        </div>
-        <div className="dcdivider mine"></div>
-        <div className="dcitem yours">
-          <div className="lbl">Your Spell Attack</div>
-          <div className="val">d20 {fmt(myAtk)}</div>
-          <div className="sub">prof({prof}) + {statLabel}({fmt(myMod)})</div>
-        </div>
-      </>) : (
-        <div className="dcitem yourshint">
-          <div className="lbl">Your Spell Save DC</div>
-          <div className="sub">Enter your {statLabel} modifier in <b>👤 My Character</b> and your exact DC shows here automatically.</div>
-        </div>
-      )}
+      <div className="dcitem yourshint">
+        <div className="lbl">Your Spell Save DC</div>
+        <div className="sub">Enter your {statLabel} modifier in <b>👤 My Character</b> and your exact DC shows here automatically.</div>
+      </div>
     </div>
   );
 }
@@ -1036,8 +1183,29 @@ function KiDCBar({lv}){
   const dc = 8+prof;
   const {profile} = useProfile();
   const wis = (profile && profile.mods && typeof profile.mods.wis==="number") ? profile.mods.wis : 0;
-  const entered = profile && (wis !== 0 || profile.name);
+  const str = (profile && profile.mods && typeof profile.mods.str==="number") ? profile.mods.str : 0;
+  const dex = (profile && profile.mods && typeof profile.mods.dex==="number") ? profile.mods.dex : 0;
+  const entered = profile && (wis !== 0 || str !== 0 || dex !== 0 || profile.name);
   const myDC = 8 + prof + wis;
+  const best = dex >= str ? {k:"DEX", v:dex} : {k:"STR", v:str};
+  const myAtk = prof + best.v;
+  if(entered){
+    return (
+      <div className="dcbar">
+        <div className="dcitem yours">
+          <div className="lbl">Your Ki Save DC</div>
+          <div className="val">{myDC}</div>
+          <div className="sub">8 + prof({prof}) + WIS({fmt(wis)})</div>
+        </div>
+        <div className="dcdivider mine"></div>
+        <div className="dcitem yours">
+          <div className="lbl">Your Unarmed / Monk Weapon Attack</div>
+          <div className="val">d20 {fmt(myAtk)}</div>
+          <div className="sub">prof({prof}) + {best.k}({fmt(best.v)})</div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="dcbar">
       <div className="dcitem">
@@ -1051,23 +1219,14 @@ function KiDCBar({lv}){
         <div className="val">d20 +{prof} + DEX or STR</div>
         <div className="sub">= d20 + prof({prof}) + STR/DEX</div>
       </div>
-      {entered ? (<>
-        <div className="dcdivider mine"></div>
-        <div className="dcitem yours">
-          <div className="lbl">Your Ki Save DC</div>
-          <div className="val">{myDC}</div>
-          <div className="sub">8 + prof({prof}) + WIS({fmt(wis)})</div>
-        </div>
-      </>) : (
-        <div className="dcitem yourshint">
-          <div className="lbl">Your Ki Save DC</div>
-          <div className="sub">Enter your WIS modifier in <b>👤 My Character</b> and your exact Ki DC shows here.</div>
-        </div>
-      )}
+      <div className="dcitem yourshint">
+        <div className="lbl">Your Ki Save DC</div>
+        <div className="sub">Enter your WIS modifier in <b>👤 My Character</b> and your exact Ki DC shows here.</div>
+      </div>
     </div>
   );
 }
-const legend = <div className="legend"><span><span className="conc">Conc</span> = requires concentration (breaks if you take damage and fail a CON save, DC = 10 or half damage taken, whichever is higher; also breaks if you cast another concentration spell)</span><span><span className="rit">Ritual</span> = can be cast as a 10-min ritual without using a slot, if you have the spell prepared/known</span></div>;
+const legend = <div className="legend"><span><span className="caticon act"></span> = Action</span><span><span className="caticon bonus"></span> = Bonus Action</span><span><span className="conc">Conc</span> = requires concentration (breaks if you take damage and fail a CON save, DC = 10 or half damage taken, whichever is higher; also breaks if you cast another concentration spell)</span><span><span className="rit">Ritual</span> = can be cast as a 10-min ritual without using a slot, if you have the spell prepared/known</span></div>;
 
 // Decide which ability modifier applies to a weapon's damage, given its
 // properties string and a fallback melee stat. Finesse/ranged weapons may use
@@ -1739,9 +1898,7 @@ function WizardFeatures(lv){
 /* ---------------- MARTIAL ARTS & KI — plain-language explainer (shared) ---------------- */
 const MA_DIE_TABLE = [
   ["1–4","1d4","Your starting die — also the minimum damage of any unarmed strike or monk weapon."],
-  ["5–10","1d6","Unlocked at level 5, alongside Extra Attack."],
-  ["11–16","1d8","Outside this sheet's 1–7 range — shown for reference."],
-  ["17–20","1d10","Outside this sheet's 1–7 range — shown for reference."],
+  ["5–7","1d6","Unlocked at level 5, alongside Extra Attack."],
 ];
 const KI_ABILITIES = [
   ["Flurry of Blows","1 ki","Bonus Action","2 extra unarmed strikes right after your Attack action — your main damage lever every ki-positive turn."],
@@ -1785,13 +1942,6 @@ function MartialArtsKiGuide({lv}){
       <table className="rtable"><thead><tr><th style={{width:'20%'}}>Ability</th><th style={{width:'10%'}}>Cost</th><th style={{width:'22%'}}>When You Use It</th><th>What It Does</th></tr></thead>
       <tbody>{KI_ABILITIES.map((r,i)=>(<tr key={i}><td className="nm" data-label="Ability">{r[0]}</td><td data-label="Cost"><span className="ki">{r[1]}</span></td><td data-label="When">{r[2]}</td><td data-label="Effect">{r[3]}</td></tr>))}</tbody></table>
     </Sec>
-    <Sec title="Turn-by-Turn: How to Actually Spend Ki">
-      <div className="actcard">
-        <p><b>Early levels (2–4), before Extra Attack:</b> Your turn is Attack action (1 hit) + either your free bonus strike (no ki) or spend 1 ki for Flurry of Blows (2 bonus strikes instead of 1). Flurry is almost always worth it in a fight you intend to win quickly. Save 1 ki in reserve for Patient Defense or Step of the Wind if things go bad.</p>
-        <p><b>Level 5+, after Extra Attack:</b> Your turn is now Attack action (2 hits) + bonus strike/Flurry. On the <i>first</i> hit of that Attack action, consider spending 1 ki on Stunning Strike against the most dangerous enemy — locking down a real threat is usually worth more than the extra Flurry damage. You can still Flurry afterward if you have ki to spare.</p>
-        <p><b>Ki budget rule of thumb:</b> you have {kiPool||2} points per rest. In a multi-fight day, don't spend more than half your pool on a single non-critical fight — but never end a rest sitting on unspent ki either, since it's free to refresh.</p>
-      </div>
-    </Sec>
   </>);
 }
 
@@ -1801,12 +1951,10 @@ function monkActions(lv, sub, q){
   const acts=[];
   acts.push(<Act key="ma" name="Martial Arts — Bonus Unarmed Strike" meta={`Bonus Action · Die: ${maDie} · Requires: took the Attack action this turn using an unarmed strike or monk weapon`}>
     <p>Immediately after you take the Attack action on your turn, you can make one unarmed strike as a bonus action.</p>
-    <p>Unarmed strikes and monk weapons use your choice of STR or DEX for both the attack and damage roll, and deal your Martial Arts die instead of the normal 1 bludgeoning (or the weapon's die, if higher — the monk weapon's normal die is used if larger than your current Martial Arts die).</p>
+    <p>Unarmed strikes and monk weapons use your choice of STR or DEX for both the attack and damage roll, and deal your Martial Arts die.</p>
   </Act>);
   if(lv>=2){
-    acts.push(<Act key="ki" name="Ki Points" meta={`Pool: ${lv} · Save DC = 8 + prof + WIS · Refresh: short or long rest`}>
-      <p>Many of your features below spend ki points. All expended points return on a short or long rest. Your Ki save DC is used whenever a feature calls for the target to resist it (e.g., Stunning Strike, Water Whip, Fist of Unbroken Air).</p>
-    </Act>);
+    acts.push(<KiPointsCard key="ki" lv={lv}/>);
     acts.push(<Act key="fob" name="Flurry of Blows" meta="Bonus Action · 1 ki point">
       <p>Immediately after taking the Attack action on your turn, spend 1 ki point to make <b>two</b> unarmed strikes as a bonus action (replaces the single Martial Arts bonus strike). Each hit deals your Martial Arts die (<Roll>{maDie} + STR/DEX</Roll>).</p>
     </Act>);
@@ -2033,11 +2181,11 @@ function UniversalCombat(){
   return (<>
     <Sec title="Actions in Combat — anyone can take these">
       <table className="rtable"><thead><tr><th style={{width:'18%'}}>Action</th><th style={{width:'18%'}}>Cost</th><th>What It Does</th></tr></thead>
-        <tbody>{ACTIONS_IN_COMBAT.map((r,i)=>(<tr key={i}><td className="nm" data-label="Action">{r[0]}</td><td data-label="Cost">{r[1]}</td><td data-label="Effect">{r[2]}</td></tr>))}</tbody></table>
+        <tbody>{ACTIONS_IN_COMBAT.map((r,i)=>(<tr key={i}><td className="nm" data-label="Action">{r[0]}</td><td data-label="Cost">{withCastIcons(r[1])}</td><td data-label="Effect">{r[2]}</td></tr>))}</tbody></table>
     </Sec>
     <Sec title="Bonus Actions, Reactions &amp; Free Interactions">
       <table className="rtable"><thead><tr><th style={{width:'22%'}}>Thing</th><th style={{width:'16%'}}>Type</th><th>What It Does</th></tr></thead>
-        <tbody>{BONUS_REACTION.map((r,i)=>(<tr key={i}><td className="nm" data-label="Thing">{r[0]}</td><td data-label="Type">{r[1]}</td><td data-label="Effect">{r[2]}</td></tr>))}</tbody></table>
+        <tbody>{BONUS_REACTION.map((r,i)=>(<tr key={i}><td className="nm" data-label="Thing">{r[0]}</td><td data-label="Type">{withCastIcons(r[1])}</td><td data-label="Effect">{r[2]}</td></tr>))}</tbody></table>
     </Sec>
     <Sec title="Grapple &amp; Shove — the special melee options">
       <div className="actcard">
