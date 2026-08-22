@@ -122,6 +122,20 @@
   .dcitem.yourshint .sub{font-size:11.5px; color:#ffe9a8; font-weight:600}
   .dcitem.yourshint b{color:#fff}
 
+  /* ---- Class resource boxes: sit beside the DC bar, styled to match it ---- */
+  .dcrow{display:flex; gap:10px; align-items:stretch; margin:0 0 16px; flex-wrap:wrap}
+  .dcrow > .dcbar{flex:2 1 320px; margin:0}
+  .resbar{flex:1 1 220px; display:flex; flex-wrap:wrap; gap:10px; margin:0; padding:12px 14px;
+    background:var(--ink); border-radius:8px; border:2px solid var(--edge)}
+  .resitem{flex:1 1 96px; min-width:88px; text-align:center; padding:4px 8px}
+  .resitem .lbl{font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:#e7d9b0; opacity:.85; margin-bottom:3px}
+  .resitem .val{font-size:20px; font-weight:800; color:#fff; font-family:"Courier New",monospace; line-height:1.1}
+  .resitem .sub{font-size:10.5px; color:#e7d9b0; margin-top:2px; font-weight:600; line-height:1.35}
+  .slotnums{display:flex; gap:10px; justify-content:center; flex-wrap:wrap}
+  .slotnum{display:flex; flex-direction:column; align-items:center; line-height:1}
+  .slotnum b{font-size:20px; font-weight:800; color:#fff; font-family:"Courier New",monospace}
+  .slotnum .sll{font-size:9px; text-transform:uppercase; letter-spacing:.06em; color:#e7d9b0; opacity:.85; margin-top:2px; font-weight:700}
+
   /* ---- Inline modifier inputs (sync with My Character) ---- */
   .modbar{
     display:flex; align-items:center; flex-wrap:wrap; gap:10px;
@@ -1225,6 +1239,50 @@ function KiDCBar({lv}){
       </div>
     </div>
   );
+}
+// A single resource box, styled to match the DC bar's items.
+function ResItem({label, val, sub}){
+  return (
+    <div className="resitem">
+      <div className="lbl">{label}</div>
+      <div className="val">{val}</div>
+      {sub && <div className="sub">{sub}</div>}
+    </div>
+  );
+}
+// Class-specific resource counts shown beside the DC bar. Reference values at
+// the selected level (1–7), matching the sheet's non-interactive style.
+function ClassResources({cls, lv}){
+  const {profile} = useProfile();
+  const mods = (profile && profile.mods) || {};
+  const arr = SLOTS[lv];
+  let boxes = [];
+  if(cls==="lore"){
+    const die = lv>=5 ? "d8" : "d6";
+    const chaMod = typeof mods.cha==="number" ? mods.cha : 0;
+    const hasCha = chaMod!==0 || (profile && profile.name);
+    const uses = Math.max(1, chaMod);
+    boxes.push(<ResItem key="bi" label="Bardic Inspiration"
+      val={hasCha ? uses : "CHA"}
+      sub={hasCha ? `${die} · ${lv>=5?"short/long rest":"long rest"}` : `mod (min 1) · ${die}`} />);
+  } else if(cls==="life"){
+    const uses = lv>=6 ? 2 : (lv>=2 ? 1 : 0);
+    boxes.push(<ResItem key="cd" label="Channel Divinity"
+      val={uses||"—"} sub={uses?`${uses} / rest · Turn Undead & Preserve Life share`:"unlocks L2"} />);
+    if(lv>=2) boxes.push(<ResItem key="pl" label="Preserve Life" val={5*lv} sub="HP pool per use" />);
+  } else if(cls==="moon"){
+    const uses = lv>=2 ? 2 : 0;
+    boxes.push(<ResItem key="ws" label="Wild Shape"
+      val={uses||"—"} sub={uses?`${uses} / rest · CR ≤ ${lv>=6?2:1} · ${Math.floor(lv/2)} hr`:"unlocks L2"} />);
+  } else if(cls==="wizard"){
+    const rec = Math.ceil(lv/2);
+    boxes.push(<ResItem key="ar" label="Arcane Recovery" val={rec} sub="slot-levels · 1/day, short rest" />);
+  } else if(cls==="shadow" || cls==="elements"){
+    const ki = lv>=2 ? lv : 0;
+    boxes.push(<ResItem key="ki" label="Ki Points" val={ki||"—"} sub={ki?"= monk level · short/long rest":"unlocks L2"} />);
+  }
+  if(arr && arr.length) boxes.push(<ResItem key="slots" label="Spell Slots" val={<span className="slotnums">{arr.map((c,i)=><span key={i} className="slotnum"><b>{c}</b><span className="sll">{["1st","2nd","3rd","4th","5th"][i]||`${i+1}th`}</span></span>)}</span>} />);
+  return <div className="resbar">{boxes}</div>;
 }
 const legend = <div className="legend"><span><span className="caticon act"></span> = Action</span><span><span className="caticon bonus"></span> = Bonus Action</span><span><span className="conc">Conc</span> = requires concentration (breaks if you take damage and fail a CON save, DC = 10 or half damage taken, whichever is higher; also breaks if you cast another concentration spell)</span><span><span className="rit">Ritual</span> = can be cast as a 10-min ritual without using a slot, if you have the spell prepared/known</span></div>;
 
@@ -3123,7 +3181,17 @@ function App(){
             <h2>{K.label}</h2>
             <span className="sub">Level {lv} · {headerRight}</span>
           </div>
-          {isMonk ? <KiDCBar lv={lv}/> : <DCBar statLabel={K.statLabel} prof={PROF[lv]}/>}
+          {isMonk ? (
+            <div className="dcrow">
+              <KiDCBar lv={lv}/>
+              <ClassResources cls={cls} lv={lv}/>
+            </div>
+          ) : (
+            <div className="dcrow">
+              <DCBar statLabel={K.statLabel} prof={PROF[lv]}/>
+              <ClassResources cls={cls} lv={lv}/>
+            </div>
+          )}
           <ModBar statKeys={["str","dex","con","int","wis","cha"]} note="Fill these in and your spell/heal/AC/weapon numbers below update automatically. Synced with 👤 My Character." />
           {body}
         </div>
