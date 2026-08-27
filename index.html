@@ -117,10 +117,6 @@
   .dcitem.yours .val{font-size:30px; color:#fff; text-shadow:0 1px 6px rgba(166,124,26,.7)}
   .dcitem.yours .sub{color:#ffedb8; opacity:.95}
   .dcdivider.mine{background:var(--gold); width:2px}
-  .dcitem.yourshint{flex:1 1 100%; text-align:center; opacity:.85; border-top:1px dashed rgba(255,233,168,.35); margin-top:6px; padding-top:8px}
-  .dcitem.yourshint .lbl{font-size:10.5px; text-transform:uppercase; letter-spacing:.12em; color:#ffe9a8; margin-bottom:3px}
-  .dcitem.yourshint .sub{font-size:11.5px; color:#ffe9a8; font-weight:600}
-  .dcitem.yourshint b{color:#fff}
 
   /* ---- Class resource boxes: sit beside the DC bar, styled to match it ---- */
   .dcrow{display:flex; gap:10px; align-items:stretch; margin:0 0 16px; flex-wrap:wrap}
@@ -519,6 +515,13 @@
     .dcitem{min-width:0; padding:7px 4px; width:100%}
     .dcitem .val{font-size:19px}
     .dcdivider{width:100%; height:1px; align-self:auto; margin:2px 0}
+    /* DC + resources stack; kill the wide flex-basis that caused horizontal
+       overflow (and the phantom white space on the right) in mobile Safari */
+    .dcrow{flex-direction:column; gap:10px; margin:0 0 14px}
+    .dcrow > .dcbar{flex:1 1 auto; width:100%; min-width:0}
+    .resbar{flex:1 1 auto; width:100%; min-width:0; padding:10px 12px}
+    .resitem{flex:1 1 120px; min-width:0}
+    .slotnums{gap:12px}
 
     .sec h3{font-size:12.5px; margin-bottom:8px; color:#8a6510}
     .actcard{padding:11px 12px}
@@ -641,6 +644,8 @@
     .subtab{padding:8px 11px; font-size:13px}
     .dcitem .val{font-size:17px}
     .rtable td{font-size:13px}
+    .resitem{flex:1 1 100%}
+    .slotnum b{font-size:18px}
   }
 
   /* Respect users who prefer less motion */
@@ -1185,10 +1190,6 @@ function DCBar({statLabel, prof}){
         <div className="val">d20 +{atk} + {statLabel} mod</div>
         <div className="sub">= d20 + prof({prof}) + {statLabel}</div>
       </div>
-      <div className="dcitem yourshint">
-        <div className="lbl">Your Spell Save DC</div>
-        <div className="sub">Enter your {statLabel} modifier in <b>👤 My Character</b> and your exact DC shows here automatically.</div>
-      </div>
     </div>
   );
 }
@@ -1232,10 +1233,6 @@ function KiDCBar({lv}){
         <div className="lbl">Unarmed / Monk Weapon Attack</div>
         <div className="val">d20 +{prof} + DEX or STR</div>
         <div className="sub">= d20 + prof({prof}) + STR/DEX</div>
-      </div>
-      <div className="dcitem yourshint">
-        <div className="lbl">Your Ki Save DC</div>
-        <div className="sub">Enter your WIS modifier in <b>👤 My Character</b> and your exact Ki DC shows here.</div>
       </div>
     </div>
   );
