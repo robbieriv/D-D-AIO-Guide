@@ -1967,33 +1967,15 @@ const KI_ABILITIES = [
 function MartialArtsKiGuide({lv}){
   const showLv = lv || 7;
   const maDie = showLv>=17?'1d10': showLv>=11?'1d8': showLv>=5?'1d6':'1d4';
-  const kiPool = showLv>=2?showLv:0;
   return (<>
-    <Sec title="What Martial Arts Actually Does">
-      <div className="actcard">
-        <p><b>The short version:</b> Martial Arts lets you fight with your fists or a small set of light weapons as well as a fighter swings a sword — it upgrades your unarmed damage, lets you use DEX instead of STR, and gives you a free extra attack every single turn, no ki required.</p>
-        <ul>
-          <li><b>Use DEX instead of STR</b> for the attack roll and damage roll of unarmed strikes and monk weapons — pick whichever is better and stick with it.</li>
-          <li><b>Bigger unarmed damage die</b> — replaces the flat "1 bludgeoning" of a normal unarmed strike with your Martial Arts die. This die is <i>added to</i> your ability modifier just like any weapon (damage = die + STR/DEX mod, not one or the other) — and it also replaces a monk weapon's own die whenever your Martial Arts die is bigger.</li>
-          <li><b>Active from level 1</b> — every monk gets this immediately, not something that unlocks later. (Your subclass's level-3 feature — Shadow Arts or Disciple of the Elements — adds new ki options; it doesn't change how the base Martial Arts math works.)</li>
-          <li><b>Free bonus-action strike</b> — every time you take the Attack action using an unarmed strike or a monk weapon, you get one extra unarmed strike as a bonus action, at no ki cost. This is always on; Flurry of Blows (below) replaces it with two strikes instead of one when you want to spend ki.</li>
-        </ul>
-      </div>
+    <Sec title="Martial Arts Die by Level">
       <table className="rtable"><thead><tr><th style={{width:'15%'}}>Monk Level</th><th style={{width:'15%'}}>Die</th><th>What Changes</th></tr></thead>
       <tbody>{MA_DIE_TABLE.map((r,i)=>{
         const isCurrent = lv && r[1]===maDie;
         return (<tr key={i} style={isCurrent?{outline:'2px solid var(--blood)'}:undefined}><td className="nm" data-label="Monk Level">{r[0]}{isCurrent?' ← you are here':''}</td><td data-label="Die"><Roll>{r[1]}</Roll></td><td data-label="What Changes">{r[2]}</td></tr>);
       })}</tbody></table>
     </Sec>
-    <Sec title="What Ki Actually Does">
-      <div className="actcard">
-        <p><b>The short version:</b> Ki points are a once-per-rest resource pool that fuels your strongest moves — think of them as "special move" charges. You get a number of points equal to your monk level (starting at 2nd level), and every point spent comes back on a short <i>or</i> long rest, so don't be shy about using them.</p>
-        <ul>
-          <li><b>Current pool at level {showLv}:</b> {kiPool||'0 — Ki unlocks at level 2'} points.</li>
-          <li><b>Ki Save DC</b> (used whenever an ability forces an enemy to resist it): <Roll>8 + prof + WIS mod</Roll> = <FlatCalc base={8 + (showLv>=5?3:2)} statKeys={["wis"]}/> at {lv?"your current level":"level 7"}.</li>
-          <li><b>Refresh:</b> all spent ki returns after a short <i>or</i> long rest — unlike spell slots, you can safely spend it every fight.</li>
-        </ul>
-      </div>
+    <Sec title="Ki Abilities">
       <table className="rtable"><thead><tr><th style={{width:'20%'}}>Ability</th><th style={{width:'10%'}}>Cost</th><th style={{width:'22%'}}>When You Use It</th><th>What It Does</th></tr></thead>
       <tbody>{KI_ABILITIES.map((r,i)=>(<tr key={i}><td className="nm" data-label="Ability">{r[0]}</td><td data-label="Cost"><span className="ki">{r[1]}</span></td><td data-label="When">{r[2]}</td><td data-label="Effect">{r[3]}</td></tr>))}</tbody></table>
     </Sec>
